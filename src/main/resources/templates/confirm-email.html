@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xác nhận Email</title>
+</head>
+
+<body style="margin:0;padding:0;background-color:#f1edec;font-family:Arial,sans-serif;">
+
+<table role="presentation"
+       width="100%"
+       cellspacing="0"
+       cellpadding="0"
+       border="0"
+       style="padding:20px 0;">
+
+    <tr>
+        <td align="center">
+
+            <table role="presentation"
+                   width="600"
+                   cellspacing="0"
+                   cellpadding="0"
+                   border="0"
+                   style="background:#ffffff;border-radius:8px;border:1px solid #c4c7c7;overflow:hidden;">
+
+                <!-- Header -->
+                <tr>
+                    <td align="center" style="padding:32px 0 16px;">
+                        <h1 style="margin:0;font-size:28px;color:#000;">
+                            ThompBui Pro
+                        </h1>
+                    </td>
+                </tr>
+
+                <!-- Banner -->
+                <tr>
+                    <td align="center" style="padding:0 24px 16px;">
+                        <div style="background:#f0fdf4;
+                                    border:1px solid #d1fae5;
+                                    border-radius:8px;
+                                    padding:40px 0;
+                                    font-size:40px;">
+                            🏠
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Content -->
+                <tr>
+                    <td style="padding:0 24px 32px;text-align:center;">
+
+                        <h2 style="margin:0 0 16px;font-size:22px;color:#1c1b1b;">
+                            Chào mừng bạn đến với ThompBui Pro!
+                        </h2>
+
+                        <p style="margin:0 0 24px;
+                                  color:#444748;
+                                  line-height:1.7;
+                                  font-size:15px;">
+
+                            Cảm ơn bạn đã đăng ký tài khoản.
+
+                            <br><br>
+
+                            Để hoàn tất quá trình đăng ký và kích hoạt tài khoản,
+                            vui lòng nhấn vào nút bên dưới để xác nhận địa chỉ email của bạn.
+
+                        </p>
+
+                        <!-- Button -->
+                        <div style="margin:32px 0;">
+
+                            <a th:href="${confirmationLink}"
+                               style="background:#10b981;
+                                      color:white;
+                                      padding:14px 48px;
+                                      text-decoration:none;
+                                      border-radius:8px;
+                                      font-size:16px;
+                                      font-weight:bold;
+                                      display:inline-block;">
+                                Xác nhận tài khoản
+                            </a>
+
+                        </div>
+
+                        <!-- Backup link -->
+
+                        <p style="font-size:13px;color:#666;">
+                            Nếu nút trên không hoạt động, hãy sao chép liên kết dưới đây:
+                        </p>
+
+                        <p style="background:#f0fdf4;
+                                  padding:10px;
+                                  border-radius:6px;
+                                  word-break:break-all;
+                                  font-family:monospace;
+                                  color:#10b981;">
+
+                            <a th:href="${confirmationLink}"
+                               th:text="${confirmationLink}"
+                               style="color:#10b981;text-decoration:none;">
+                            </a>
+
+                        </p>
+
+                        <p style="margin-top:28px;
+                                  font-size:13px;
+                                  color:#999;">
+
+                            Liên kết xác nhận sẽ hết hạn sau
+                            <strong>5 phút</strong>.
+
+                        </p>
+
+                    </td>
+                </tr>
+
+                <!-- Footer -->
+
+                <tr>
+                    <td style="padding:24px;
+                               background:#ebe7e6;
+                               border-top:1px solid #c4c7c7;">
+
+                        <p style="margin:0 0 10px;
+                                  color:#555;
+                                  font-size:14px;">
+
+                            Nếu bạn không tạo tài khoản này, vui lòng bỏ qua email này.
+                            Không cần thực hiện bất kỳ thao tác nào.
+
+                        </p>
+
+                        <p style="margin:0;
+                                  color:#1c1b1b;
+                                  font-weight:bold;">
+
+                            Trân trọng,<br>
+                            Đội ngũ ThompBui Pro
+
+                        </p>
+
+                    </td>
+                </tr>
+
+            </table>
+
+        </td>
+    </tr>
+
+</table>
+
+</body>
+</html>
