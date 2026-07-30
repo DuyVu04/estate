@@ -60,6 +60,15 @@ class WorkflowAspectTest {
         public void cancelReservation(String reservationId) {
             // Cancel business logic
         }
+
+        @WorkflowEngine(
+                action = ReservationAction.CANCEL,
+                step = "cancel-reservation",
+                targetIdSpel = "#reservationId"
+        )
+        public void failingCancelReservation(String reservationId) {
+            throw new RuntimeException("Simulated business error");
+        }
     }
 
     @BeforeEach
@@ -123,5 +132,28 @@ class WorkflowAspectTest {
 
         verify(instanceRepository, times(1)).save(any(WorkflowInstance.class));
         verify(historyRepository, times(1)).save(any(WorkflowHistory.class));
+    }
+
+    @Test
+    @DisplayName("Should intercept Exception thrown by business method and record FAILED history in independent transaction")
+    void interceptException_RecordsFailedWorkflowHistory() {
+        WorkflowInstance existingInstance = WorkflowInstance.builder()
+                .id("wf-inst-333")
+                .workflowName("reservation-workflow")
+                .targetId("res-003")
+                .status(WorkflowInstanceStatus.IN_PROGRESS)
+                .currentStep("create-reservation")
+                .build();
+
+        when(instanceRepository.findByWorkflowNameAndTargetId("reservation-workflow", "res-003"))
+                .thenReturn(Optional.of(existingInstance));
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> proxiedService.failingCancelReservation("res-003"));
+        assertEquals("Simulated business error", ex.getMessage());
+
+        verify(historyRepository, times(1)).save(argThat(hist ->
+                hist.getStatus() == com.project.estate.enums.WorkflowHistoryStatus.FAILED &&
+                "Simulated business error".equals(hist.getErrorMessage())
+        ));
     }
 }

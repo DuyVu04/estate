@@ -11,6 +11,8 @@ import com.project.estate.workflow.context.WorkflowContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -50,6 +52,7 @@ public class WorkflowPersistenceService {
         return instanceRepository.save(instance);
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void saveHistory(WorkflowContext context, WorkflowHistoryStatus status, String errorMessage) {
         if (context.getWorkflowInstanceId() == null) {
             return;

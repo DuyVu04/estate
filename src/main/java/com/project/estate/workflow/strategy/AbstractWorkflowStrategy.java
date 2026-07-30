@@ -34,7 +34,8 @@ public abstract class AbstractWorkflowStrategy implements WorkflowStrategy {
         String requestId = UUID.randomUUID().toString().substring(0, 8);
         String targetId = spelEvaluator.parseTargetId(joinPoint, targetIdSpel, null);
 
-        ReservationStatus previousStatus = persistenceService.findPreviousStatus(workflowName, targetId);
+        var existingInstance = persistenceService.findInstance(workflowName, targetId).orElse(null);
+        ReservationStatus previousStatus = existingInstance != null ? mapToReservationStatus(existingInstance.getStatus()) : null;
 
         log.info("[WORKFLOW_STRATEGY] Pre-processing action={} for targetId={}, currentStatus={}",
                 getAction(), targetId, previousStatus);
@@ -46,6 +47,7 @@ public abstract class AbstractWorkflowStrategy implements WorkflowStrategy {
         ReservationStatus nextStatus = ReservationStateMachine.getNextState(previousStatus, getAction(), actor);
 
         WorkflowContext contextToSet = WorkflowContext.builder()
+                .workflowInstanceId(existingInstance != null ? existingInstance.getId() : null)
                 .workflowName(workflowName)
                 .currentStep(stepName)
                 .action(getAction())
@@ -94,6 +96,11 @@ public abstract class AbstractWorkflowStrategy implements WorkflowStrategy {
         log.error("[WORKFLOW_STRATEGY] Error-processing action={} for targetId={}, error={}",
                 getAction(), context.getTargetId(), ex.getMessage());
 
+        if (context.getWorkflowInstanceId() == null && context.getTargetId() != null && !context.getTargetId().isBlank()) {
+            WorkflowInstance instance = persistenceService.saveOrUpdateInstance(context);
+            context.setWorkflowInstanceId(instance.getId());
+        }
+
         if (context.getWorkflowInstanceId() != null) {
             persistenceService.saveHistory(context, WorkflowHistoryStatus.FAILED, ex.getMessage());
         }
@@ -108,4 +115,15 @@ public abstract class AbstractWorkflowStrategy implements WorkflowStrategy {
     protected void doBeforeProcess(WorkflowContext context) {}
     protected void doAfterProcess(WorkflowContext context) {}
     protected void doAfterThrowProcess(WorkflowContext context, Throwable ex) {}
+
+    private ReservationStatus mapToReservationStatus(com.project.estate.enums.WorkflowInstanceStatus status) {
+        if (status == null) return null;
+        return switch (status) {
+            case IN_PROGRESS -> ReservationStatus.ACTIVE;
+            case COMPLETED -> ReservationStatus.COMPLETED;
+            case CANCELLED -> ReservationStatus.CANCELLED;
+            case EXPIRED -> ReservationStatus.EXPIRED;
+            default -> null;
+        };
+    }
 }
