@@ -1,16 +1,15 @@
 package com.project.estate.workflow.strategy.reservation;
 
 import com.project.estate.enums.ReservationAction;
-import com.project.estate.enums.ReservationStatus;
+import com.project.estate.enums.ReservationActor;
 import com.project.estate.workflow.context.WorkflowContext;
-import com.project.estate.workflow.statemachine.ReservationStateMachine;
-import com.project.estate.workflow.strategy.WorkflowStrategy;
+import com.project.estate.workflow.strategy.AbstractWorkflowStrategy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class ExpireReservationWorkflowStrategy implements WorkflowStrategy {
+public class ExpireReservationWorkflowStrategy extends AbstractWorkflowStrategy {
 
     @Override
     public ReservationAction getAction() {
@@ -18,24 +17,12 @@ public class ExpireReservationWorkflowStrategy implements WorkflowStrategy {
     }
 
     @Override
-    public void beforeProcess(WorkflowContext context) {
-        log.info("[EXPIRE_WORKFLOW] Validating EXPIRE reservation for targetId={}, currentStatus={}",
-                context.getTargetId(), context.getPreviousStatus());
-        ReservationStatus nextStatus = ReservationStateMachine.getNextState(
-                context.getPreviousStatus(), getAction(), context.getActor()
-        );
-        context.setNewStatus(nextStatus);
+    protected ReservationActor getDefaultActor() {
+        return ReservationActor.SYSTEM;
     }
 
     @Override
-    public void afterProcess(WorkflowContext context) {
-        log.info("[EXPIRE_WORKFLOW] Successfully expired reservation targetId={}, newStatus={}",
-                context.getTargetId(), context.getNewStatus());
-    }
-
-    @Override
-    public void afterThrowProcess(WorkflowContext context, Throwable ex) {
-        log.error("[EXPIRE_WORKFLOW] Failed EXPIRE reservation for targetId={}, error={}",
-                context.getTargetId(), ex.getMessage());
+    protected void doAfterProcess(WorkflowContext context) {
+        log.info("[EXPIRE_STRATEGY] Reservation expired successfully for targetId={}", context.getTargetId());
     }
 }
