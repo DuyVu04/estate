@@ -22,7 +22,7 @@ public interface WorkflowStrategy {
     /**
      * Hook executed AFTER successful business method invocation.
      */
-    void afterProcess(Object result);
+    void afterProcess(JoinPoint joinPoint, String targetIdSpel, Object result);
 
     /**
      * Hook executed when an EXCEPTION is thrown during business method invocation.

@@ -35,7 +35,8 @@ public class WorkflowAspect {
     @AfterReturning(value = "@annotation(workflowEngine)", returning = "result", argNames = "joinPoint,result,workflowEngine")
     public void afterReturnWorkflow(JoinPoint joinPoint, Object result, WorkflowEngine workflowEngine) {
         var action = workflowEngine.action();
-        workflowStrategyFactory.getStrategy(action).afterProcess(result);
+        var targetIdSpel = workflowEngine.targetIdSpel();
+        workflowStrategyFactory.getStrategy(action).afterProcess(joinPoint, targetIdSpel, result);
     }
 
     @AfterThrowing(value = "@annotation(workflowEngine)", throwing = "ex", argNames = "joinPoint,ex,workflowEngine")

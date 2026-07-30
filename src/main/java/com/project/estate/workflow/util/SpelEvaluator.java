@@ -28,16 +28,17 @@ public class SpelEvaluator {
             return null;
         }
 
-        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
-        Method method = signature.getMethod();
-        Object[] args = joinPoint.getArgs();
-
         try {
             EvaluationContext evalContext = new StandardEvaluationContext();
-            String[] paramNames = parameterNameDiscoverer.getParameterNames(method);
-            if (paramNames != null && args != null) {
-                for (int i = 0; i < paramNames.length; i++) {
-                    evalContext.setVariable(paramNames[i], args[i]);
+            if (joinPoint != null) {
+                MethodSignature signature = (MethodSignature) joinPoint.getSignature();
+                Method method = signature.getMethod();
+                Object[] args = joinPoint.getArgs();
+                String[] paramNames = parameterNameDiscoverer.getParameterNames(method);
+                if (paramNames != null && args != null) {
+                    for (int i = 0; i < paramNames.length; i++) {
+                        evalContext.setVariable(paramNames[i], args[i]);
+                    }
                 }
             }
             if (result != null) {

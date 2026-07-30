@@ -62,18 +62,22 @@ public abstract class AbstractWorkflowStrategy implements WorkflowStrategy {
     }
 
     @Override
-    public void afterProcess(Object result) {
+    public void afterProcess(JoinPoint joinPoint, String targetIdSpel, Object result) {
         WorkflowContext context = WorkflowContext.get();
         if (context == null) return;
 
-        log.info("[WORKFLOW_STRATEGY] Post-processing action={} for targetId={}, newStatus={}",
-                getAction(), context.getTargetId(), context.getNewStatus());
-
+        // Extract targetId post-execution if needed (e.g. #result.id) via SpEL
         if (context.getTargetId() == null || context.getTargetId().isBlank()) {
-            if (result != null) {
+            String extractedId = spelEvaluator.parseTargetId(joinPoint, targetIdSpel, result);
+            if (extractedId != null && !extractedId.isBlank()) {
+                context.setTargetId(extractedId);
+            } else if (result != null) {
                 context.setTargetId(result.toString());
             }
         }
+
+        log.info("[WORKFLOW_STRATEGY] Post-processing action={} for targetId={}, newStatus={}",
+                getAction(), context.getTargetId(), context.getNewStatus());
 
         WorkflowInstance instance = persistenceService.saveOrUpdateInstance(context);
         context.setWorkflowInstanceId(instance.getId());
