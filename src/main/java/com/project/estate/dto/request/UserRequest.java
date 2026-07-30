@@ -1,10 +1,11 @@
 package com.project.estate.dto.request;
 
+import com.project.estate.enums.Gender;
 import com.project.estate.util.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
-import static com.project.estate.util.Gender.*;
+import static com.project.estate.enums.Gender.*;
 
 public record UserRequest(
 

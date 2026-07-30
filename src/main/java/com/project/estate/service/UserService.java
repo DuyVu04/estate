@@ -10,16 +10,15 @@ import com.project.estate.mapper.UserMapper;
 import com.project.estate.messaging.dto.EmailVerificationMessage;
 import com.project.estate.messaging.producer.EmailProducer;
 import com.project.estate.repository.UserRepository;
-import com.project.estate.service.email.JavaMailEmailService;
 import com.project.estate.service.redis.VerificationTokenService;
-import com.project.estate.util.UserStatus;
+import com.project.estate.enums.UserStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -45,15 +44,12 @@ public class UserService {
        return userRepository.findAll();
     }
 
-    public Page<UserResponse> getUsers(int page, int size, String sortBy, String sortDirection) {
-        Sort.Direction direction = sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
-
-        Pageable pageable = PageRequest.of(
-                page,
-                size,
-                Sort.by(direction, sortBy)
-        );
-        return userRepository.findAll(pageable).map(userMapper::toUserResponse);
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public Page<UserResponse> getUsers(Specification<User> specification,
+                                       Pageable pageable) {
+        return userRepository
+                .findAll(specification,pageable)
+                .map(userMapper::toUserResponse);
     }
 
     @Cacheable(value = "users", key = "#userId")

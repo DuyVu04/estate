@@ -6,7 +6,7 @@ import com.project.estate.enums.ErrorCode;
 import com.project.estate.exception.AppException;
 import com.project.estate.repository.RoleRepository;
 import com.project.estate.repository.UserRepository;
-import com.project.estate.util.UserStatus;
+import com.project.estate.enums.UserStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

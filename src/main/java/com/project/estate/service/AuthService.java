@@ -14,7 +14,7 @@ import com.project.estate.security.UserPrincipal;
 import com.project.estate.security.jwt.JwtService;
 import com.project.estate.security.service.RefreshTokenService;
 import com.project.estate.service.redis.VerificationTokenService;
-import com.project.estate.util.UserStatus;
+import com.project.estate.enums.UserStatus;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

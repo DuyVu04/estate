@@ -180,6 +180,12 @@
 			<scope>runtime</scope>
 		</dependency>
 
+		<!-- Spring Filter -->
+		<dependency>
+			<groupId>com.turkraft.springfilter</groupId>
+			<artifactId>jpa</artifactId>
+			<version>4.0.1</version>
+		</dependency>
 		<!-- ========================================== -->
 		<!-- 5. Testing Tools                           -->
 		<!-- ========================================== -->

@@ -1,6 +1,6 @@
 package com.project.estate.entity;
 
-import com.project.estate.util.UserStatus;
+import com.project.estate.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;

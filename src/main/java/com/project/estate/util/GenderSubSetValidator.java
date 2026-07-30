@@ -1,5 +1,6 @@
 package com.project.estate.util;
 
+import com.project.estate.enums.Gender;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 

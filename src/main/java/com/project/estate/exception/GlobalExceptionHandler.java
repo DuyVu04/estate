@@ -3,7 +3,9 @@ package com.project.estate.exception;
 import com.project.estate.common.response.ApiResponse;
 import com.project.estate.enums.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -68,4 +70,14 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(ErrorCode.INTERNAL_SERVER_ERROR));
     }
 
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiResponse<?>> handleAccessDeniedException(AccessDeniedException ex) {
+        ApiResponse<?> response = ApiResponse.error(ErrorCode.ACCESS_DENIED);
+        log.error(
+                "[UNEXPECTED_ERROR] {}",
+                ex.getMessage(),
+                ex
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+    }
 }

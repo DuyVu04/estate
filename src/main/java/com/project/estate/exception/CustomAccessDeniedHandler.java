@@ -22,8 +22,7 @@ public class CustomAccessDeniedHandler
     @Override
     public void handle(HttpServletRequest request,
                        HttpServletResponse response,
-                       AccessDeniedException ex)
-            throws IOException {
+                       AccessDeniedException ex) throws IOException {
 
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.setContentType("application/json;charset=UTF-8");

@@ -4,9 +4,14 @@ import com.project.estate.common.response.ApiResponse;
 import com.project.estate.common.response.PageResponse;
 import com.project.estate.dto.request.UserRequest;
 import com.project.estate.dto.response.UserResponse;
+import com.project.estate.entity.User;
 import com.project.estate.service.UserService;
+import com.turkraft.springfilter.boot.Filter;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,12 +22,10 @@ public class UserController {
 
     @GetMapping
     public ApiResponse<PageResponse<UserResponse>> getUsers(
-            @RequestParam (defaultValue = "0" ) int page,
-            @RequestParam (defaultValue = "20") int size,
-            @RequestParam (defaultValue = "id") String sortBy,
-            @RequestParam (defaultValue = "asc") String sortDirection
+            @Filter Specification<User> specification,
+            Pageable pageable
     ) {
-        return ApiResponse.success(PageResponse.of(userService.getUsers(page, size, sortBy, sortDirection)));
+        return ApiResponse.success(PageResponse.of(userService.getUsers(specification,pageable)));
     }
 
     @PostMapping

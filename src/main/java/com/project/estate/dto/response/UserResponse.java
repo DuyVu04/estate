@@ -1,6 +1,7 @@
 package com.project.estate.dto.response;
 
-import com.project.estate.util.UserStatus;
+import com.project.estate.enums.UserStatus;
+
 
 public record UserResponse(
         String id,

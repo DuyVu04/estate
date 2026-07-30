@@ -29,5 +29,6 @@ public abstract class AbstractAuditEntity {
 
     @Column(name = "updated_at")
     @UpdateTimestamp
-    private LocalDateTime  updatedAt;
+    private LocalDateTime updatedAt;
+
 }

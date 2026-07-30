@@ -1,7 +1,7 @@
 package com.project.estate.security;
 
 import com.project.estate.entity.User;
-import com.project.estate.util.UserStatus;
+import com.project.estate.enums.UserStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.jspecify.annotations.Nullable;
@@ -11,7 +11,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @AllArgsConstructor
@@ -26,7 +25,7 @@ public class UserPrincipal implements UserDetails {
 
         getUser().getRoles().forEach(role -> {
             authorities.add(
-                    new SimpleGrantedAuthority("ROLE_" + role.getName())
+                    new SimpleGrantedAuthority(role.getName())
             );
 
             role.getPermissions().forEach(permission ->
