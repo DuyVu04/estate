@@ -70,6 +70,12 @@ public enum ErrorCode {
             HttpStatus.NOT_FOUND
     ),
 
+    PROPERTY_NOT_FOUND(
+            2100,
+            "Property not found",
+            HttpStatus.NOT_FOUND
+    ),
+
     UNAUTHENTICATED(
             1200,
             "Unauthenticated",
@@ -87,10 +93,36 @@ public enum ErrorCode {
             "Resource not found",
             HttpStatus.NOT_FOUND
     ),
+
+
+
     TOO_MANY_REQUESTS(
-            1300,
+            1301,
             "Too many login attempts. Please try again later.",
             HttpStatus.TOO_MANY_REQUESTS
+    ),
+    PROPERTY_NOT_AVAILABLE(
+            1302,
+            "Property not available",
+            HttpStatus.NOT_FOUND
+    ),
+
+    PROPERTY_ALREADY_RESERVED(
+            1303,
+            "Property is already reserved",
+            HttpStatus.NOT_FOUND
+    ),
+
+    INVALID_STATE_TRANSITION(
+            1400,
+            "Invalid workflow state transition",
+            HttpStatus.BAD_REQUEST
+    ),
+
+    UNAUTHORIZED_WORKFLOW_ACTOR(
+            1401,
+            "Actor is not authorized for this workflow transition",
+            HttpStatus.FORBIDDEN
     ),
 
     INTERNAL_SERVER_ERROR(

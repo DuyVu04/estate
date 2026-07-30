@@ -150,3 +150,38 @@
 -- CREATE INDEX IF NOT EXISTS idx_refresh_tokens_token ON refresh_tokens(token);
 -- CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user_id ON refresh_tokens(user_id);
 -- =========================================================================
+
+
+---- Create indexes for properties table
+--CREATE INDEX idx_properties_city ON properties(city);
+--CREATE INDEX idx_properties_district ON properties(district);
+--CREATE INDEX idx_properties_property_type ON properties(property_type);
+--CREATE INDEX idx_properties_status ON properties(status);
+--CREATE INDEX idx_properties_price ON properties(price);
+--CREATE INDEX idx_properties_area ON properties(area);
+--CREATE INDEX idx_properties_created_at ON properties(created_at DESC);
+--
+---- Create indexes for property_images table
+--CREATE INDEX idx_property_images_property_id ON property_images(property_id);
+--CREATE INDEX idx_property_images_sort_order ON property_images(property_id, sort_order);
+
+--CREATE INDEX idx_reservation_property_status
+--ON reservations(property_id, status);
+
+-- -------------------------------------------------------------------------
+-- WORKFLOW INSTANCES TABLE INDEXES
+-- -------------------------------------------------------------------------
+-- Recommended for: Finding all instances by status (e.g. IN_PROGRESS cleanup)
+-- CREATE INDEX idx_workflow_instances_status ON workflow_instances(status);
+
+-- Recommended for: Target entity lookup (e.g. finding workflow by target_id)
+-- CREATE INDEX idx_workflow_instances_target_id ON workflow_instances(target_id);
+
+-- -------------------------------------------------------------------------
+-- WORKFLOW HISTORIES TABLE INDEXES
+-- -------------------------------------------------------------------------
+-- Recommended for: Fetching audit history trail for a specific workflow instance
+-- CREATE INDEX idx_workflow_histories_instance_id ON workflow_histories(workflow_instance_id);
+
+-- Recommended for: History sorting by creation time
+-- CREATE INDEX idx_workflow_histories_instance_created ON workflow_histories(workflow_instance_id, created_at ASC);
