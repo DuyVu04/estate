@@ -41,6 +41,10 @@ public class WorkflowPersistenceService {
     }
 
     public WorkflowInstance saveOrUpdateInstance(WorkflowContext context) {
+        if (context.getTargetId() == null || context.getTargetId().isBlank()) {
+            return null;
+        }
+
         WorkflowInstance instance = findInstance(context.getWorkflowName(), context.getTargetId())
                 .orElseGet(() -> WorkflowInstance.builder()
                         .workflowName(context.getWorkflowName())
@@ -54,12 +58,18 @@ public class WorkflowPersistenceService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void saveHistory(WorkflowContext context, WorkflowHistoryStatus status, String errorMessage) {
-        if (context.getWorkflowInstanceId() == null) {
+        if (context.getTargetId() == null || context.getTargetId().isBlank()) {
             return;
         }
 
+        WorkflowInstance instance = saveOrUpdateInstance(context);
+        if (instance == null) {
+            return;
+        }
+        context.setWorkflowInstanceId(instance.getId());
+
         WorkflowHistory history = WorkflowHistory.builder()
-                .workflowInstanceId(context.getWorkflowInstanceId())
+                .workflowInstanceId(instance.getId())
                 .action(context.getAction().name())
                 .step(context.getCurrentStep())
                 .previousStatus(context.getPreviousStatus() != null ? context.getPreviousStatus().name() : "NONE")

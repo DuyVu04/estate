@@ -21,6 +21,11 @@ public class AuthController {
     private final AuthService authService;
     private final UserService userService;
 
+    @GetMapping("/me")
+    public ApiResponse<UserResponse> getMyInfo() {
+        return ApiResponse.success(authService.getMyInfo());
+    }
+
     @PostMapping("/login")
     public ApiResponse<TokenResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
         return ApiResponse.success(authService.login(loginRequest));

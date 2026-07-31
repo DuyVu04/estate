@@ -81,9 +81,6 @@ public abstract class AbstractWorkflowStrategy implements WorkflowStrategy {
         log.info("[WORKFLOW_STRATEGY] Post-processing action={} for targetId={}, newStatus={}",
                 getAction(), context.getTargetId(), context.getNewStatus());
 
-        WorkflowInstance instance = persistenceService.saveOrUpdateInstance(context);
-        context.setWorkflowInstanceId(instance.getId());
-
         persistenceService.saveHistory(context, WorkflowHistoryStatus.SUCCESS, null);
         doAfterProcess(context);
     }
@@ -96,15 +93,7 @@ public abstract class AbstractWorkflowStrategy implements WorkflowStrategy {
         log.error("[WORKFLOW_STRATEGY] Error-processing action={} for targetId={}, error={}",
                 getAction(), context.getTargetId(), ex.getMessage());
 
-        if (context.getWorkflowInstanceId() == null && context.getTargetId() != null && !context.getTargetId().isBlank()) {
-            WorkflowInstance instance = persistenceService.saveOrUpdateInstance(context);
-            context.setWorkflowInstanceId(instance.getId());
-        }
-
-        if (context.getWorkflowInstanceId() != null) {
-            persistenceService.saveHistory(context, WorkflowHistoryStatus.FAILED, ex.getMessage());
-        }
-
+        persistenceService.saveHistory(context, WorkflowHistoryStatus.FAILED, ex.getMessage());
         doAfterThrowProcess(context, ex);
     }
 

@@ -26,6 +26,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
+import com.project.estate.dto.response.UserResponse;
+import com.project.estate.mapper.UserMapper;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -39,9 +43,23 @@ public class AuthService {
 
     private final UserRepository userRepository;
 
+    private final UserMapper userMapper;
+
     private final VerificationTokenService verificationTokenService;
 
     private final EmailProducer emailProducer;
+
+    public UserResponse getMyInfo() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !(authentication.getPrincipal() instanceof UserPrincipal principal)) {
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+
+        User user = userRepository.findById(principal.getUser().getId())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        return userMapper.toUserResponse(user);
+    }
 
     public TokenResponse login(LoginRequest loginRequest) {
             Authentication authentication = authenticationManager.authenticate(

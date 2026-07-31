@@ -147,6 +147,8 @@ class WorkflowAspectTest {
 
         when(instanceRepository.findByWorkflowNameAndTargetId("reservation-workflow", "res-003"))
                 .thenReturn(Optional.of(existingInstance));
+        when(instanceRepository.save(any(WorkflowInstance.class)))
+                .thenAnswer(inv -> inv.getArgument(0));
 
         RuntimeException ex = assertThrows(RuntimeException.class, () -> proxiedService.failingCancelReservation("res-003"));
         assertEquals("Simulated business error", ex.getMessage());

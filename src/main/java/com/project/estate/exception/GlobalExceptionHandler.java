@@ -80,4 +80,12 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
     }
+
+    @ExceptionHandler({org.springframework.orm.ObjectOptimisticLockingFailureException.class, jakarta.persistence.OptimisticLockException.class, org.springframework.dao.OptimisticLockingFailureException.class})
+    public ResponseEntity<ApiResponse<Void>> handleOptimisticLockingFailure(Exception ex) {
+        log.warn("[CONCURRENCY_LOCK_FAILURE] Concurrent modification detected: {}", ex.getMessage());
+        return ResponseEntity
+                .status(ErrorCode.PROPERTY_ALREADY_RESERVED.getStatus())
+                .body(ApiResponse.error(ErrorCode.PROPERTY_ALREADY_RESERVED));
+    }
 }

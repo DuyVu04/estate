@@ -8,7 +8,7 @@ import com.project.estate.entity.User;
 import com.project.estate.service.UserService;
 import com.turkraft.springfilter.boot.Filter;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
