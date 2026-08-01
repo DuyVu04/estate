@@ -1,6 +1,5 @@
 package com.project.estate.service;
 
-import com.project.estate.common.response.PageResponse;
 import com.project.estate.dto.request.PropertyCreateRequest;
 import com.project.estate.dto.request.PropertyUpdateRequest;
 import com.project.estate.dto.response.PropertyResponse;
@@ -13,14 +12,10 @@ import com.project.estate.repository.PropertyRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor

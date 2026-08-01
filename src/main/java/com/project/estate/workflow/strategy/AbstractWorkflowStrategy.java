@@ -1,6 +1,5 @@
 package com.project.estate.workflow.strategy;
 
-import com.project.estate.entity.WorkflowInstance;
 import com.project.estate.enums.ReservationActor;
 import com.project.estate.enums.ReservationStatus;
 import com.project.estate.enums.WorkflowHistoryStatus;

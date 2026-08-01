@@ -8,7 +8,6 @@ import com.project.estate.dto.response.TokenResponse;
 import com.project.estate.dto.response.UserResponse;
 import com.project.estate.service.AuthService;
 import com.project.estate.service.UserService;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;

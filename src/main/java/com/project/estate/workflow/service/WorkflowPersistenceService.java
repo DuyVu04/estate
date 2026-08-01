@@ -89,6 +89,7 @@ public class WorkflowPersistenceService {
             case COMPLETED -> ReservationStatus.COMPLETED;
             case CANCELLED -> ReservationStatus.CANCELLED;
             case EXPIRED -> ReservationStatus.EXPIRED;
+            case DEPOSIT_PAID -> ReservationStatus.DEPOSIT_PAID;
             default -> null;
         };
     }
@@ -100,6 +101,7 @@ public class WorkflowPersistenceService {
             case COMPLETED -> WorkflowInstanceStatus.COMPLETED;
             case CANCELLED -> WorkflowInstanceStatus.CANCELLED;
             case EXPIRED -> WorkflowInstanceStatus.EXPIRED;
+            case DEPOSIT_PAID -> WorkflowInstanceStatus.DEPOSIT_PAID;      
         };
     }
 }

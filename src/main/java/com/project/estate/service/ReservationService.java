@@ -119,4 +119,17 @@ public class ReservationService {
         reservation.setStatus(ReservationStatus.EXPIRED);
         reservation.getProperty().setStatus(PropertyStatus.AVAILABLE);
     }
+
+    @WorkflowEngine(
+            action = ReservationAction.PAY_DEPOSIT,
+            step = "pay-deposit",
+            targetIdSpel = "#id"
+    )
+    @Transactional
+    public void payDeposit(String id) {
+        Reservation reservation = reservationRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
+
+        reservation.setStatus(ReservationStatus.DEPOSIT_PAID);
+    }
 }

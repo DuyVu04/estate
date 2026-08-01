@@ -28,17 +28,25 @@ public class ReservationStateMachine {
             new TransitionRule(null, ReservationAction.CREATE, ReservationStatus.ACTIVE,
                     EnumSet.of(ReservationActor.CUSTOMER)),
 
-            // CANCEL: ACTIVE -> CANCELLED by CUSTOMER or ADMIN
+            // CANCEL: ACTIVE or DEPOSIT_PAID -> CANCELLED by CUSTOMER or ADMIN
             new TransitionRule(ReservationStatus.ACTIVE, ReservationAction.CANCEL, ReservationStatus.CANCELLED,
                     EnumSet.of(ReservationActor.CUSTOMER, ReservationActor.ADMIN)),
+            new TransitionRule(ReservationStatus.DEPOSIT_PAID, ReservationAction.CANCEL, ReservationStatus.CANCELLED,
+                    EnumSet.of(ReservationActor.CUSTOMER, ReservationActor.ADMIN)),
 
-            // COMPLETE: ACTIVE -> COMPLETED by ADMIN
+            // COMPLETE: DEPOSIT_PAID or ACTIVE -> COMPLETED by ADMIN
+            new TransitionRule(ReservationStatus.DEPOSIT_PAID, ReservationAction.COMPLETE, ReservationStatus.COMPLETED,
+                    EnumSet.of(ReservationActor.ADMIN, ReservationActor.SYSTEM)),
             new TransitionRule(ReservationStatus.ACTIVE, ReservationAction.COMPLETE, ReservationStatus.COMPLETED,
-                    EnumSet.of(ReservationActor.ADMIN)),
+                    EnumSet.of(ReservationActor.ADMIN, ReservationActor.SYSTEM)),
 
             // EXPIRE: ACTIVE -> EXPIRED by SYSTEM
             new TransitionRule(ReservationStatus.ACTIVE, ReservationAction.EXPIRE, ReservationStatus.EXPIRED,
-                    EnumSet.of(ReservationActor.SYSTEM))
+                    EnumSet.of(ReservationActor.SYSTEM)),
+
+            // PAY DEPOSIT: ACTIVE -> DEPOSIT_PAID by CUSTOMER
+            new TransitionRule(ReservationStatus.ACTIVE, ReservationAction.PAY_DEPOSIT, ReservationStatus.DEPOSIT_PAID,
+                    EnumSet.of(ReservationActor.CUSTOMER))
     );
 
     /**

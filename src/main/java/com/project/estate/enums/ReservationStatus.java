@@ -13,5 +13,8 @@ public enum ReservationStatus {
     CANCELLED,
 
     @JsonProperty("completed")
-    COMPLETED
+    COMPLETED,
+
+    @JsonProperty("deposit_paid")
+    DEPOSIT_PAID
 }

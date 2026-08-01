@@ -16,5 +16,8 @@ public enum WorkflowInstanceStatus {
     EXPIRED,
 
     @JsonProperty("failed")
-    FAILED
+    FAILED,
+
+    @JsonProperty("deposit_paid")
+    DEPOSIT_PAID
 }

@@ -13,5 +13,8 @@ public enum ReservationAction {
     COMPLETE,
 
     @JsonProperty("expire")
-    EXPIRE
+    EXPIRE,
+
+    @JsonProperty("pay_deposit")
+    PAY_DEPOSIT
 }
