@@ -1,11 +1,16 @@
 package com.project.estate.service.email;
 
-import jakarta.mail.MessagingException;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.io.UnsupportedEncodingException;
-
+/**
+ * Clean low-level email sender contract (Interface Segregation & Liskov Substitution).
+ * Focuses purely on transport delivery (Text, HTML, Attachments) without domain template coupling.
+ */
 public interface MailService {
-    void send(String to, String subject, String html);
 
-    void sendConfirmLink(String to, String secretKey) throws MessagingException, UnsupportedEncodingException;
+    void sendText(String to, String subject, String content);
+
+    void sendHtml(String to, String subject, String htmlContent);
+
+    void sendWithAttachments(String to, String subject, String content, MultipartFile[] files);
 }

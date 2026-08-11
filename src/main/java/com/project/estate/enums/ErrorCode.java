@@ -125,6 +125,24 @@ public enum ErrorCode {
             HttpStatus.FORBIDDEN
     ),
 
+    PAYMENT_NOT_FOUND(
+            1500,
+            "Payment not found",
+            HttpStatus.NOT_FOUND
+    ),
+
+    PAYMENT_ALREADY_PROCESSED(
+            1501,
+            "Payment has already been processed",
+            HttpStatus.BAD_REQUEST
+    ),
+
+    INVALID_PAYMENT_AMOUNT(
+            1502,
+            "Payment amount does not match deposit requirement",
+            HttpStatus.BAD_REQUEST
+    ),
+
     INTERNAL_SERVER_ERROR(
             9999,
             "Internal server error",

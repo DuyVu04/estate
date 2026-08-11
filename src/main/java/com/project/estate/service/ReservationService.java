@@ -62,6 +62,7 @@ public class ReservationService {
                 .user(user)
                 .property(property)
                 .status(ReservationStatus.ACTIVE)
+                .depositAmount(property.getPrice().multiply(java.math.BigDecimal.valueOf(0.1)))
                 .expiresAt(LocalDateTime.now().plusMinutes(15))
                 .build();
 

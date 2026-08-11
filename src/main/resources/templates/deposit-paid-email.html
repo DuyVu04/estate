@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xác nhận Đặt cọc Thành công</title>
+</head>
+
+<body style="margin:0;padding:0;background-color:#f1edec;font-family:Arial,sans-serif;">
+
+<table role="presentation"
+       width="100%"
+       cellspacing="0"
+       cellpadding="0"
+       border="0"
+       style="padding:20px 0;">
+
+    <tr>
+        <td align="center">
+
+            <table role="presentation"
+                   width="600"
+                   cellspacing="0"
+                   cellpadding="0"
+                   border="0"
+                   style="background:#ffffff;border-radius:8px;border:1px solid #c4c7c7;overflow:hidden;">
+
+                <!-- Header -->
+                <tr>
+                    <td align="center" style="padding:32px 0 16px;background:#10b981;">
+                        <h1 style="margin:0;font-size:26px;color:#ffffff;">
+                            XÁC NHẬN ĐẶT CỌC THÀNH CÔNG
+                        </h1>
+                    </td>
+                </tr>
+
+                <!-- Banner -->
+                <tr>
+                    <td align="center" style="padding:24px 24px 16px;">
+                        <div style="background:#f0fdf4;
+                                    border:1px solid #d1fae5;
+                                    border-radius:8px;
+                                    padding:30px 0;
+                                    font-size:48px;">
+                            🏡
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Content -->
+                <tr>
+                    <td style="padding:0 32px 32px;text-align:left;">
+
+                        <h2 style="margin:0 0 16px;font-size:20px;color:#1c1b1b;">
+                            Chúc mừng bạn đã hoàn tất đặt cọc!
+                        </h2>
+
+                        <p style="margin:0 0 20px;
+                                  color:#444748;
+                                  line-height:1.7;
+                                  font-size:15px;">
+                            Cảm ơn bạn đã tin tưởng dịch vụ bất động sản của chúng tôi. Dưới đây là thông tin chi tiết về giao dịch đặt cọc giữ chỗ của bạn:
+                        </p>
+
+                        <!-- Transaction Details Card -->
+                        <table role="presentation"
+                               width="100%"
+                               cellspacing="0"
+                               cellpadding="12"
+                               border="0"
+                               style="background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;margin-bottom:24px;font-size:14px;color:#334155;">
+                            <tr>
+                                <td style="font-weight:bold;width:40%;">Bất động sản:</td>
+                                <td style="color:#0f172a;font-weight:bold;" th:text="${propertyTitle}">Căn hộ cao cấp</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight:bold;">Mã giữ chỗ:</td>
+                                <td style="font-family:monospace;color:#2563eb;" th:text="${reservationId}">RES-123456</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight:bold;">Số tiền cọc:</td>
+                                <td style="color:#059669;font-weight:bold;font-size:16px;" th:text="${#numbers.formatDecimal(amount, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">50,000,000 VNĐ</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight:bold;">Mã giao dịch (Ref):</td>
+                                <td style="font-family:monospace;" th:text="${transactionRef}">TXN-VNPAY-998877</td>
+                            </tr>
+                        </table>
+
+                        <p style="margin:0;color:#475569;font-size:14px;line-height:1.6;">
+                            Ban quản trị và đội ngũ tư vấn sẽ sớm liên hệ trực tiếp với bạn để làm thủ tục ký kết hợp đồng chính thức.
+                        </p>
+
+                    </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                    <td style="padding:24px;
+                               background:#f8fafc;
+                               border-top:1px solid #e2e8f0;
+                               text-align:center;">
+
+                        <p style="margin:0 0 8px;
+                                  color:#64748b;
+                                  font-size:13px;">
+                            Nếu có bất kỳ thắc mắc nào, vui lòng liên hệ bộ phận hỗ trợ khách hàng.
+                        </p>
+
+                        <p style="margin:0;
+                                  color:#0f172a;
+                                  font-weight:bold;
+                                  font-size:14px;">
+                            Trân trọng,<br>
+                            Đội ngũ Dịch vụ Bất động sản
+                        </p>
+
+                    </td>
+                </tr>
+
+            </table>
+
+        </td>
+    </tr>
+
+</table>
+
+</body>
+</html>

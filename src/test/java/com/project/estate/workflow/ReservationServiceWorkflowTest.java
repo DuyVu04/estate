@@ -8,7 +8,6 @@ import com.project.estate.entity.User;
 import com.project.estate.entity.WorkflowHistory;
 import com.project.estate.entity.WorkflowInstance;
 import com.project.estate.enums.PropertyStatus;
-import com.project.estate.enums.ReservationAction;
 import com.project.estate.enums.ReservationStatus;
 import com.project.estate.enums.WorkflowInstanceStatus;
 import com.project.estate.mapper.ReservationMapper;
@@ -106,7 +105,7 @@ class ReservationServiceWorkflowTest {
     @Test
     @DisplayName("End-to-End: Reserve property triggering CREATE workflow action")
     void reserveProperty_TriggersWorkflowEngine() {
-        Property property = Property.builder().id("prop-01").status(PropertyStatus.AVAILABLE).build();
+        Property property = Property.builder().id("prop-01").status(PropertyStatus.AVAILABLE).price(java.math.BigDecimal.valueOf(5000000000L)).build();
         User user = User.builder().id("user-01").build();
         ReservationRequest request = new ReservationRequest("prop-01", "user-01");
 
@@ -143,7 +142,7 @@ class ReservationServiceWorkflowTest {
     @Test
     @DisplayName("End-to-End: Cancel reservation triggering CANCEL workflow action")
     void cancelReservation_TriggersWorkflowEngine() {
-        Property property = Property.builder().id("prop-01").status(PropertyStatus.RESERVED).build();
+        Property property = Property.builder().id("prop-01").status(PropertyStatus.RESERVED).price(java.math.BigDecimal.valueOf(5000000000L)).build();
         Reservation reservation = Reservation.builder()
                 .id("res-999")
                 .property(property)
@@ -175,7 +174,7 @@ class ReservationServiceWorkflowTest {
     @Test
     @DisplayName("End-to-End: Complete reservation triggering COMPLETE workflow action")
     void completeReservation_TriggersWorkflowEngine() {
-        Property property = Property.builder().id("prop-01").status(PropertyStatus.RESERVED).build();
+        Property property = Property.builder().id("prop-01").status(PropertyStatus.RESERVED).price(java.math.BigDecimal.valueOf(5000000000L)).build();
         Reservation reservation = Reservation.builder()
                 .id("res-999")
                 .property(property)

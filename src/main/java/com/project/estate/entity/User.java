@@ -31,9 +31,11 @@ public class User extends AbstractAuditEntity {
      UserStatus status;
 
     @Column(nullable = false)
+    @Builder.Default
     boolean enabled = false;
 
     @ManyToMany()
+    @Builder.Default
     @JoinTable(
             name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
@@ -42,6 +44,7 @@ public class User extends AbstractAuditEntity {
     private Set<Role> roles = new HashSet<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private Set<RefreshToken> refreshTokens = new HashSet<>();
 
 }

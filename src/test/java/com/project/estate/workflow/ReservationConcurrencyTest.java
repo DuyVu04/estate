@@ -6,7 +6,6 @@ import com.project.estate.entity.Property;
 import com.project.estate.entity.Reservation;
 import com.project.estate.entity.User;
 import com.project.estate.entity.WorkflowInstance;
-import com.project.estate.enums.ErrorCode;
 import com.project.estate.enums.PropertyStatus;
 import com.project.estate.enums.ReservationStatus;
 import com.project.estate.exception.AppException;
@@ -104,6 +103,7 @@ class ReservationConcurrencyTest {
                 .id(propertyId)
                 .status(PropertyStatus.AVAILABLE)
                 .version(1L)
+                .price(java.math.BigDecimal.valueOf(5000000000L))
                 .build();
 
         User userA = User.builder().id("user-a").build();

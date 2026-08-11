@@ -111,6 +111,7 @@ public abstract class AbstractWorkflowStrategy implements WorkflowStrategy {
             case COMPLETED -> ReservationStatus.COMPLETED;
             case CANCELLED -> ReservationStatus.CANCELLED;
             case EXPIRED -> ReservationStatus.EXPIRED;
+            case DEPOSIT_PAID -> ReservationStatus.DEPOSIT_PAID;
             default -> null;
         };
     }

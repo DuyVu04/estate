@@ -38,9 +38,14 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void createAdminUserIfNotExists() {
-        // Check if admin user already exists
-        if (userRepository.findByUsername(defaultAdmin).isPresent()) {
-            log.info("Admin user already exists. Skipping creation.");
+        var existingAdmin = userRepository.findByUsername(defaultAdmin);
+        if (existingAdmin.isPresent()) {
+            User admin = existingAdmin.get();
+            admin.setPassword(passwordEncoder.encode(defaultAdmin));
+            admin.setEnabled(true);
+            admin.setStatus(UserStatus.ACTIVE);
+            userRepository.save(admin);
+            log.info("✓ Default admin user verified & password synchronized! (Username: {}, Password: {})", defaultAdmin, defaultAdmin);
             return;
         }
 

@@ -24,6 +24,7 @@ public class Role extends AbstractAuditEntity {
     private String description;
 
     @ManyToMany()
+    @Builder.Default
     @JoinTable(
             name = "role_permissions",
             joinColumns = @JoinColumn(name = "role_id"),

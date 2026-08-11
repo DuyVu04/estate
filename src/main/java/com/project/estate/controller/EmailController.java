@@ -3,9 +3,7 @@ package com.project.estate.controller;
 import com.project.estate.common.response.ApiResponse;
 import com.project.estate.dto.request.ResendVerificationRequest;
 import com.project.estate.service.AuthService;
-import com.project.estate.service.email.JavaMailEmailService;
-import com.project.estate.service.email.SendGridEmailService;
-import jakarta.servlet.http.HttpServletRequest;
+import com.project.estate.service.email.MailService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,13 +15,13 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class EmailController {
 
-    private final JavaMailEmailService emailService;
+    private final MailService emailService;
 
     private final AuthService authService;
 
     @GetMapping("/send-email")
     public ApiResponse<Void> sendEmail(@RequestParam String to, @RequestParam String subject, @RequestParam String content) {
-        emailService.send(to, subject, content);
+        emailService.sendText(to, subject, content);
         return ApiResponse.success();
     }
 

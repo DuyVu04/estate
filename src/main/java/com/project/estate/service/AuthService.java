@@ -62,6 +62,7 @@ public class AuthService {
     }
 
     public TokenResponse login(LoginRequest loginRequest) {
+        try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             loginRequest.username(),
@@ -79,7 +80,10 @@ public class AuthService {
                     .accessToken(accessToken)
                     .refreshToken(refreshToken.getToken())
                     .build();
-
+        } catch (org.springframework.security.core.AuthenticationException ex) {
+            log.warn("Login failed for user {}: {}", loginRequest.username(), ex.getMessage());
+            throw new AppException(ErrorCode.INVALID_USERNAME_OR_PASSWORD);
+        }
     }
 
     public TokenResponse refreshToken(RefreshTokenRequest request) {

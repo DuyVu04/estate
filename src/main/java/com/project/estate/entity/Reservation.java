@@ -31,6 +31,9 @@ public class Reservation extends AbstractAuditEntity{
     @Column(nullable = false, length = 20)
     private ReservationStatus status;
 
+    @Column(precision = 15, scale = 2)
+    private java.math.BigDecimal depositAmount;
+
     @Column(nullable = false)
     private LocalDateTime expiresAt;
 }
