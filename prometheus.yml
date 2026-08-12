@@ -7,10 +7,18 @@ scrape_configs:
     static_configs:
       - targets: ["localhost:9090"]
 
-  - job_name: "estate-backend"
+  - job_name: "estate-backend-local"
+    metrics_path: "/api/actuator/prometheus"
+    scrape_interval: 5s
+    static_configs:
+      - targets: ["host.docker.internal:8080"]
+        labels:
+          application: "Real Estate Backend Service (Local Host)"
+
+  - job_name: "estate-backend-docker"
     metrics_path: "/api/actuator/prometheus"
     scrape_interval: 5s
     static_configs:
       - targets: ["estate-service:8080"]
         labels:
-          application: "Real Estate Backend Service"
+          application: "Real Estate Backend Service (Docker Container)"
