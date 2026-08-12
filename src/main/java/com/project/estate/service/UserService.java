@@ -1,17 +1,18 @@
 package com.project.estate.service;
 
-
 import com.project.estate.dto.request.UserRequest;
 import com.project.estate.dto.response.UserResponse;
+import com.project.estate.entity.Role;
 import com.project.estate.entity.User;
 import com.project.estate.enums.ErrorCode;
+import com.project.estate.enums.UserStatus;
 import com.project.estate.exception.AppException;
 import com.project.estate.mapper.UserMapper;
 import com.project.estate.messaging.dto.EmailVerificationMessage;
 import com.project.estate.messaging.producer.EmailProducer;
+import com.project.estate.repository.RoleRepository;
 import com.project.estate.repository.UserRepository;
 import com.project.estate.service.redis.VerificationTokenService;
-import com.project.estate.enums.UserStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
@@ -22,7 +23,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -31,24 +34,21 @@ import java.util.UUID;
 public class UserService {
 
     private final UserRepository userRepository;
-
+    private final RoleRepository roleRepository;
     private final UserMapper userMapper;
-
     private final PasswordEncoder passwordEncoder;
-
     private final VerificationTokenService verificationTokenService;
-
     private final EmailProducer emailProducer;
 
     public List<User> getUser() {
-       return userRepository.findAll();
+        return userRepository.findAll();
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public Page<UserResponse> getUsers(Specification<User> specification,
                                        Pageable pageable) {
         return userRepository
-                .findAll(specification,pageable)
+                .findAll(specification, pageable)
                 .map(userMapper::toUserResponse);
     }
 
@@ -61,13 +61,22 @@ public class UserService {
         return userMapper.toUserResponse(user);
     }
 
-
     public UserResponse createUser(UserRequest userRequest) {
         var user = userMapper.toUser(userRequest);
         user.setPassword(
                 passwordEncoder.encode(user.getPassword())
         );
         user.setStatus(UserStatus.INACTIVE);
+
+        // Assign default ROLE_USER if user has no assigned roles
+        if (user.getRoles() == null || user.getRoles().isEmpty()) {
+            Set<Role> defaultRoles = new HashSet<>();
+            Role userRole = roleRepository.findByName("ROLE_USER")
+                    .orElseGet(() -> roleRepository.save(Role.builder().name("ROLE_USER").description("Standard User").build()));
+            defaultRoles.add(userRole);
+            user.setRoles(defaultRoles);
+        }
+
         userRepository.save(user);
 
         String token = UUID.randomUUID().toString();
@@ -92,10 +101,4 @@ public class UserService {
         }
         return userMapper.toUserResponse(user);
     }
-
-    public void deleteUser(String userId) {
-        userRepository.deleteById(userId);
-    }
-
-
 }

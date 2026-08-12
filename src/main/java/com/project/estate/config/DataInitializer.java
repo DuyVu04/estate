@@ -3,10 +3,10 @@ package com.project.estate.config;
 import com.project.estate.entity.Role;
 import com.project.estate.entity.User;
 import com.project.estate.enums.ErrorCode;
+import com.project.estate.enums.UserStatus;
 import com.project.estate.exception.AppException;
 import com.project.estate.repository.RoleRepository;
 import com.project.estate.repository.UserRepository;
-import com.project.estate.enums.UserStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,14 +27,25 @@ public class DataInitializer implements CommandLineRunner {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
-    @Value("${default-admin}")
+    @Value("${default-admin:admin}")
     private String defaultAdmin;
-
 
     @Override
     @Transactional
     public void run(String... args) {
+        initRoles();
         createAdminUserIfNotExists();
+    }
+
+    private void initRoles() {
+        if (roleRepository.findByName("ROLE_ADMIN").isEmpty()) {
+            roleRepository.save(Role.builder().name("ROLE_ADMIN").description("Administrator").build());
+            log.info("✓ Created default ROLE_ADMIN");
+        }
+        if (roleRepository.findByName("ROLE_USER").isEmpty()) {
+            roleRepository.save(Role.builder().name("ROLE_USER").description("Standard User").build());
+            log.info("✓ Created default ROLE_USER");
+        }
     }
 
     private void createAdminUserIfNotExists() {
@@ -51,11 +62,9 @@ public class DataInitializer implements CommandLineRunner {
 
         log.info("Creating default admin user...");
 
-        // Find ROLE_ADMIN
         Role adminRole = roleRepository.findByName("ROLE_ADMIN")
                 .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
 
-        // Create admin user
         Set<Role> roles = new HashSet<>();
         roles.add(adminRole);
 
@@ -75,8 +84,5 @@ public class DataInitializer implements CommandLineRunner {
         userRepository.save(adminUser);
 
         log.info("✓ Default admin user created successfully!");
-        log.info("  Username: admin");
-        log.info("  Password: admin");
-        log.info("  ⚠️  Please change the password in production!");
     }
 }
