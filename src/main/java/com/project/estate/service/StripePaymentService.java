@@ -64,7 +64,7 @@ public class StripePaymentService {
     // 1. Validate Reservation
     Reservation reservation =
         reservationRepository
-            .findById(request.getReservationId())
+            .findById(request.reservationId())
             .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
 
     if (reservation.getStatus() != ReservationStatus.ACTIVE) {
@@ -77,19 +77,30 @@ public class StripePaymentService {
     if (existingPayment.isPresent()) {
       log.info(
           "[STRIPE] Returning existing checkout session for idempotencyKey={}", idempotencyKey);
-      PaymentResponse response = paymentMapper.toResponse(existingPayment.get());
-      response.setCheckoutUrl(
+      PaymentResponse baseResponse = paymentMapper.toResponse(existingPayment.get());
+      String checkoutUrl =
           existingPayment.get().getTransactionRef() != null
               ? retrieveSessionUrl(existingPayment.get().getTransactionRef())
-              : null);
-      return response;
+              : null;
+      return PaymentResponse.builder()
+          .id(baseResponse.id())
+          .reservationId(baseResponse.reservationId())
+          .amount(baseResponse.amount())
+          .paymentMethod(baseResponse.paymentMethod())
+          .status(baseResponse.status())
+          .transactionRef(baseResponse.transactionRef())
+          .idempotencyKey(baseResponse.idempotencyKey())
+          .checkoutUrl(checkoutUrl)
+          .paidAt(baseResponse.paidAt())
+          .createdAt(baseResponse.createdAt())
+          .build();
     }
 
     // 3. Determine amount (use depositAmount from reservation, fallback to request amount)
     BigDecimal amount =
         reservation.getDepositAmount() != null
             ? reservation.getDepositAmount()
-            : (request.getAmount() != null ? request.getAmount() : BigDecimal.valueOf(50000000));
+            : (request.amount() != null ? request.amount() : BigDecimal.valueOf(50000000));
 
     // 4. Build Stripe Checkout Session
     String propertyTitle =
@@ -154,9 +165,19 @@ public class StripePaymentService {
           reservation.getId(),
           amount);
 
-      PaymentResponse response = paymentMapper.toResponse(payment);
-      response.setCheckoutUrl(session.getUrl());
-      return response;
+      PaymentResponse baseResponse = paymentMapper.toResponse(payment);
+      return PaymentResponse.builder()
+          .id(baseResponse.id())
+          .reservationId(baseResponse.reservationId())
+          .amount(baseResponse.amount())
+          .paymentMethod(baseResponse.paymentMethod())
+          .status(baseResponse.status())
+          .transactionRef(baseResponse.transactionRef())
+          .idempotencyKey(baseResponse.idempotencyKey())
+          .checkoutUrl(session.getUrl())
+          .paidAt(baseResponse.paidAt())
+          .createdAt(baseResponse.createdAt())
+          .build();
 
     } catch (StripeException e) {
       log.error("[STRIPE] Failed to create checkout session: {}", e.getMessage(), e);

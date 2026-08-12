@@ -23,15 +23,15 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PaymentService {
 
   private final PaymentRepository paymentRepository;
   private final ReservationRepository reservationRepository;
-  private final ReservationService reservationService;
   private final PaymentMapper paymentMapper;
+  private final ReservationService reservationService;
   private final ApplicationEventPublisher eventPublisher;
   private final com.project.estate.messaging.producer.EmailProducer emailProducer;
 
@@ -39,7 +39,7 @@ public class PaymentService {
   public PaymentResponse initiatePayment(InitiatePaymentRequest request) {
     Reservation reservation =
         reservationRepository
-            .findById(request.getReservationId())
+            .findById(request.reservationId())
             .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
 
     if (reservation.getStatus() != ReservationStatus.ACTIVE) {
@@ -48,14 +48,13 @@ public class PaymentService {
 
     String idempotencyKey =
         "PAY-RES-" + reservation.getId() + "-" + UUID.randomUUID().toString().substring(0, 8);
-    BigDecimal amount =
-        request.getAmount() != null ? request.getAmount() : BigDecimal.valueOf(50000000);
+    BigDecimal amount = request.amount() != null ? request.amount() : BigDecimal.valueOf(50000000);
 
     Payment payment =
         Payment.builder()
             .reservation(reservation)
             .amount(amount)
-            .paymentMethod(request.getPaymentMethod())
+            .paymentMethod(request.paymentMethod())
             .status(PaymentStatus.PENDING)
             .idempotencyKey(idempotencyKey)
             .build();
@@ -67,30 +66,34 @@ public class PaymentService {
         reservation.getId(),
         amount);
 
-    PaymentResponse response = paymentMapper.toResponse(payment);
-    response.setCheckoutUrl(
-        "http://localhost:8080/api/v1/payments/mock-checkout?paymentId=" + payment.getId());
-    return response;
+    PaymentResponse baseResponse = paymentMapper.toResponse(payment);
+    return PaymentResponse.builder()
+        .id(baseResponse.id())
+        .reservationId(baseResponse.reservationId())
+        .amount(baseResponse.amount())
+        .paymentMethod(baseResponse.paymentMethod())
+        .status(baseResponse.status())
+        .transactionRef(baseResponse.transactionRef())
+        .idempotencyKey(baseResponse.idempotencyKey())
+        .checkoutUrl(
+            "http://localhost:8080/api/v1/payments/mock-checkout?paymentId=" + payment.getId())
+        .paidAt(baseResponse.paidAt())
+        .createdAt(baseResponse.createdAt())
+        .build();
   }
 
-  /**
-   * Orchestrator method — intentionally NOT @Transactional. Step 1 (savePaymentFromWebhook) commits
-   * Payment record first. Step 2 (payDeposit) runs in its own transaction so WorkflowEngine AOP
-   * works correctly. Step 3 (publishEvent) fires email notification after all DB writes are
-   * committed.
-   */
   public PaymentResponse processWebhook(PaymentWebhookRequest request) {
     log.info(
         "[PAYMENT_WEBHOOK] Received webhook for reservationId={}, idempotencyKey={}",
-        request.getReservationId(),
-        request.getIdempotencyKey());
+        request.reservationId(),
+        request.idempotencyKey());
 
     // 1. Idempotency Check
-    var existingOpt = paymentRepository.findByIdempotencyKey(request.getIdempotencyKey());
+    var existingOpt = paymentRepository.findByIdempotencyKey(request.idempotencyKey());
     if (existingOpt.isPresent() && existingOpt.get().getStatus() == PaymentStatus.SUCCESS) {
       log.warn(
           "[PAYMENT_WEBHOOK] Duplicate webhook detected for idempotencyKey={}.",
-          request.getIdempotencyKey());
+          request.idempotencyKey());
       return paymentMapper.toResponse(existingOpt.get());
     }
 
@@ -100,9 +103,7 @@ public class PaymentService {
     // 3. Trigger Workflow Engine in a SEPARATE transaction (AOP + REQUIRES_NEW works correctly)
     reservationService.payDeposit(payment.getReservation().getId());
 
-    // 4. Publish email event (runs async after commit thanks to @TransactionalEventListener
-    // AFTER_COMMIT)
-    // 5. Bắn Message lên RabbitMQ Queue để xử lý gửi Email phân tán (Distributed Event-Driven)
+    // 4. Publish email event
     Reservation reservation = payment.getReservation();
     if (reservation.getUser() != null && reservation.getUser().getEmail() != null) {
       String propertyTitle =
@@ -115,17 +116,17 @@ public class PaymentService {
               reservation.getId(),
               reservation.getUser().getEmail(),
               propertyTitle,
-              request.getAmount(),
-              request.getTransactionRef()));
+              request.amount(),
+              request.transactionRef()));
 
-      // Distributed RabbitMQ Message (Persistent + DLQ via messaging package)
+      // Distributed RabbitMQ Message
       emailProducer.sendDepositPaid(
           new com.project.estate.messaging.dto.DepositPaidMessage(
               reservation.getId(),
               reservation.getUser().getEmail(),
               propertyTitle,
-              request.getAmount(),
-              request.getTransactionRef()));
+              request.amount(),
+              request.transactionRef()));
     }
 
     log.info(
@@ -133,30 +134,26 @@ public class PaymentService {
     return paymentMapper.toResponse(payment);
   }
 
-  /**
-   * Saves or updates Payment record from webhook data. Runs in its own transaction so the Payment
-   * row is committed BEFORE payDeposit() is called.
-   */
   @Transactional
   public Payment savePaymentFromWebhook(PaymentWebhookRequest request) {
     Reservation reservation =
         reservationRepository
-            .findById(request.getReservationId())
+            .findById(request.reservationId())
             .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
 
-    var existingOpt = paymentRepository.findByIdempotencyKey(request.getIdempotencyKey());
+    var existingOpt = paymentRepository.findByIdempotencyKey(request.idempotencyKey());
     Payment payment =
         existingOpt.orElseGet(
             () ->
                 Payment.builder()
                     .reservation(reservation)
-                    .idempotencyKey(request.getIdempotencyKey())
+                    .idempotencyKey(request.idempotencyKey())
                     .build());
 
-    payment.setAmount(request.getAmount());
-    payment.setPaymentMethod(request.getPaymentMethod());
+    payment.setAmount(request.amount());
+    payment.setPaymentMethod(request.paymentMethod());
     payment.setStatus(PaymentStatus.SUCCESS);
-    payment.setTransactionRef(request.getTransactionRef());
+    payment.setTransactionRef(request.transactionRef());
     payment.setPaidAt(LocalDateTime.now());
 
     return paymentRepository.save(payment);

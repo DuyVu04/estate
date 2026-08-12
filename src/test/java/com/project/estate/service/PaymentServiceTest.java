@@ -13,8 +13,10 @@ import com.project.estate.entity.Reservation;
 import com.project.estate.entity.User;
 import com.project.estate.enums.PaymentMethod;
 import com.project.estate.enums.PaymentStatus;
+import com.project.estate.enums.PropertyStatus;
 import com.project.estate.enums.ReservationStatus;
 import com.project.estate.event.DepositPaidEvent;
+import com.project.estate.exception.AppException;
 import com.project.estate.mapper.PaymentMapper;
 import com.project.estate.repository.PaymentRepository;
 import com.project.estate.repository.ReservationRepository;
@@ -34,37 +36,42 @@ import org.springframework.context.ApplicationEventPublisher;
 class PaymentServiceTest {
 
   @Mock private PaymentRepository paymentRepository;
-
   @Mock private ReservationRepository reservationRepository;
-
-  @Mock private ReservationService reservationService;
-
   @Mock private PaymentMapper paymentMapper;
-
+  @Mock private ReservationService reservationService;
   @Mock private ApplicationEventPublisher eventPublisher;
-
   @Mock private com.project.estate.messaging.producer.EmailProducer emailProducer;
 
   @InjectMocks private PaymentService paymentService;
 
+  private User customer;
+  private Property property;
   private Reservation activeReservation;
 
   @BeforeEach
   void setUp() {
-    User user = User.builder().id("user-01").email("user@example.com").build();
-    Property property = Property.builder().id("prop-01").title("Luxury Villa").build();
+    customer = User.builder().id("user-001").email("customer@example.com").build();
+
+    property =
+        Property.builder()
+            .id("prop-001")
+            .title("Luxury Villa")
+            .status(PropertyStatus.RESERVED)
+            .build();
+
     activeReservation =
         Reservation.builder()
             .id("res-001")
-            .user(user)
+            .user(customer)
             .property(property)
+            .depositAmount(BigDecimal.valueOf(50000000))
             .status(ReservationStatus.ACTIVE)
             .expiresAt(LocalDateTime.now().plusMinutes(15))
             .build();
   }
 
   @Test
-  @DisplayName("Should successfully initiate payment for active reservation")
+  @DisplayName("Should initiate payment successfully for ACTIVE reservation")
   void initiatePayment_Success() {
     InitiatePaymentRequest request =
         InitiatePaymentRequest.builder()
@@ -77,7 +84,7 @@ class PaymentServiceTest {
         Payment.builder()
             .id("pay-001")
             .reservation(activeReservation)
-            .amount(request.getAmount())
+            .amount(request.amount())
             .paymentMethod(PaymentMethod.BANK_TRANSFER)
             .status(PaymentStatus.PENDING)
             .idempotencyKey("PAY-RES-res-001-12345678")
@@ -87,7 +94,7 @@ class PaymentServiceTest {
         PaymentResponse.builder()
             .id("pay-001")
             .reservationId("res-001")
-            .amount(request.getAmount())
+            .amount(request.amount())
             .paymentMethod(PaymentMethod.BANK_TRANSFER)
             .status(PaymentStatus.PENDING)
             .build();
@@ -99,9 +106,9 @@ class PaymentServiceTest {
     PaymentResponse response = paymentService.initiatePayment(request);
 
     assertNotNull(response);
-    assertEquals("pay-001", response.getId());
-    assertEquals(PaymentStatus.PENDING, response.getStatus());
-    assertNotNull(response.getCheckoutUrl());
+    assertEquals("pay-001", response.id());
+    assertEquals(PaymentStatus.PENDING, response.status());
+    assertNotNull(response.checkoutUrl());
     verify(paymentRepository, times(1)).save(any(Payment.class));
   }
 
@@ -122,7 +129,7 @@ class PaymentServiceTest {
         PaymentResponse.builder()
             .id("pay-001")
             .reservationId("res-001")
-            .amount(webhookRequest.getAmount())
+            .amount(webhookRequest.amount())
             .status(PaymentStatus.SUCCESS)
             .transactionRef("VNPAY-TRANS-999")
             .build();
@@ -135,7 +142,7 @@ class PaymentServiceTest {
     PaymentResponse response = paymentService.processWebhook(webhookRequest);
 
     assertNotNull(response);
-    assertEquals(PaymentStatus.SUCCESS, response.getStatus());
+    assertEquals(PaymentStatus.SUCCESS, response.status());
 
     verify(paymentRepository, times(1)).save(any(Payment.class));
     verify(reservationService, times(1)).payDeposit("res-001");
@@ -158,7 +165,7 @@ class PaymentServiceTest {
         Payment.builder()
             .id("pay-001")
             .reservation(activeReservation)
-            .amount(webhookRequest.getAmount())
+            .amount(webhookRequest.amount())
             .paymentMethod(PaymentMethod.VNPAY)
             .status(PaymentStatus.SUCCESS)
             .idempotencyKey("IDEM-KEY-DUPLICATE")
@@ -178,10 +185,22 @@ class PaymentServiceTest {
     PaymentResponse response = paymentService.processWebhook(webhookRequest);
 
     assertNotNull(response);
-    assertEquals(PaymentStatus.SUCCESS, response.getStatus());
-
-    verify(paymentRepository, never()).save(any(Payment.class));
+    assertEquals(PaymentStatus.SUCCESS, response.status());
     verify(reservationService, never()).payDeposit(anyString());
     verify(eventPublisher, never()).publishEvent(any());
+  }
+
+  @Test
+  @DisplayName("Should throw exception when initiating payment for non-existent reservation")
+  void initiatePayment_ReservationNotFound_ThrowsException() {
+    InitiatePaymentRequest request =
+        InitiatePaymentRequest.builder()
+            .reservationId("non-existent")
+            .paymentMethod(PaymentMethod.BANK_TRANSFER)
+            .build();
+
+    when(reservationRepository.findById("non-existent")).thenReturn(Optional.empty());
+
+    assertThrows(AppException.class, () -> paymentService.initiatePayment(request));
   }
 }

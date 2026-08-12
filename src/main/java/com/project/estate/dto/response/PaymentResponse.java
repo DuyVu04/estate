@@ -4,23 +4,17 @@ import com.project.estate.enums.PaymentMethod;
 import com.project.estate.enums.PaymentStatus;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import lombok.*;
+import lombok.Builder;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
-public class PaymentResponse {
-
-  private String id;
-  private String reservationId;
-  private BigDecimal amount;
-  private PaymentMethod paymentMethod;
-  private PaymentStatus status;
-  private String transactionRef;
-  private String idempotencyKey;
-  private String checkoutUrl;
-  private LocalDateTime paidAt;
-  private LocalDateTime createdAt;
-}
+public record PaymentResponse(
+    String id,
+    String reservationId,
+    BigDecimal amount,
+    PaymentMethod paymentMethod,
+    PaymentStatus status,
+    String transactionRef,
+    String idempotencyKey,
+    String checkoutUrl,
+    LocalDateTime paidAt,
+    LocalDateTime createdAt) {}
