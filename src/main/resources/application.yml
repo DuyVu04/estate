@@ -5,7 +5,7 @@ server:
 
 spring:
   profiles:
-    active: @spring.profiles.active@
+    active: '@spring.profiles.active@'
   jackson:
     default-property-inclusion: non_null
 
