@@ -11,6 +11,8 @@ import com.project.estate.enums.ReservationStatus;
 import com.project.estate.event.DepositPaidEvent;
 import com.project.estate.exception.AppException;
 import com.project.estate.mapper.PaymentMapper;
+import com.project.estate.messaging.dto.DepositPaidMessage;
+import com.project.estate.messaging.producer.EmailProducer;
 import com.project.estate.repository.PaymentRepository;
 import com.project.estate.repository.ReservationRepository;
 import java.math.BigDecimal;
@@ -33,7 +35,7 @@ public class PaymentService {
   private final PaymentMapper paymentMapper;
   private final ReservationService reservationService;
   private final ApplicationEventPublisher eventPublisher;
-  private final com.project.estate.messaging.producer.EmailProducer emailProducer;
+  private final EmailProducer emailProducer;
 
   @Transactional
   public PaymentResponse initiatePayment(InitiatePaymentRequest request) {
@@ -121,7 +123,7 @@ public class PaymentService {
 
       // Distributed RabbitMQ Message
       emailProducer.sendDepositPaid(
-          new com.project.estate.messaging.dto.DepositPaidMessage(
+          new DepositPaidMessage(
               reservation.getId(),
               reservation.getUser().getEmail(),
               propertyTitle,

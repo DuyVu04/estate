@@ -81,7 +81,7 @@ services:
       rabbitmq:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1"]
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/api/actuator/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -89,10 +89,44 @@ services:
     networks:
       - backend-network
 
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: estate-prometheus
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheusdata:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - backend-network
+
+  grafana:
+    image: grafana/grafana:10.4.1
+    container_name: estate-grafana
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_USER=grafana
+      - GF_SECURITY_ADMIN_PASSWORD=password
+      - GF_USERS_ALLOW_SIGN_UP=false
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafanadata:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - backend-network
+
 volumes:
   pgdata:
   redisdata:
   rabbitdata:
+  prometheusdata:
+  grafanadata:
 
 networks:
   backend-network:
