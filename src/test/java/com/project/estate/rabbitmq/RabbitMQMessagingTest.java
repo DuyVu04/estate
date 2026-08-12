@@ -3,7 +3,6 @@ package com.project.estate.rabbitmq;
 import com.project.estate.messaging.consumer.EmailConsumer;
 import com.project.estate.messaging.dto.DepositPaidMessage;
 import com.project.estate.messaging.producer.EmailProducer;
-import com.project.estate.service.email.JavaMailEmailService;
 import com.rabbitmq.client.Channel;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
