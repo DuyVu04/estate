@@ -2,15 +2,17 @@
 FROM maven:3.9.6-eclipse-temurin-21 AS builder
 WORKDIR /app
 
+# Build profile parameter (defaults to 'dev', can be overridden via --build-arg MAVEN_PROFILE=prod)
+ARG MAVEN_PROFILE=dev
+
 # Copy only pom.xml first so dependency layer is cached
 # and only re-downloaded when pom.xml actually changes.
 COPY pom.xml .
 RUN mvn dependency:go-offline -B
 
-# Now copy source and build — this layer changes often,
-# but dependency layer above stays cached.
+# Now copy source and build — using the flexible MAVEN_PROFILE build argument
 COPY src ./src
-RUN mvn clean package -P dev -DskipTests
+RUN mvn clean package -P ${MAVEN_PROFILE} -DskipTests
 
 # ---- Stage 2: Runtime ----
 FROM eclipse-temurin:21-jre-alpine
