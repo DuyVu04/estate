@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.security.Key;
+import java.time.Instant;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
@@ -26,21 +27,23 @@ public class JwtService {
 
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
-        // We can add role:  claims.put("roles",userDetails.getAuthorities()));
-        return createToken(claims,userDetails.getUsername());
+        return createToken(claims, userDetails.getUsername());
     }
 
     private String createToken(Map<String, Object> claims, String subject) {
+        Instant now = Instant.now();
+        Instant expirationTime = now.plusMillis(expiration);
+
         return Jwts.builder()
                 .claims(claims)
                 .subject(subject)
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expiration))
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(expirationTime))
                 .signWith(getSigningKey())
                 .compact();
     }
 
-    private Key getSigningKey(){
+    private Key getSigningKey() {
         byte[] keyBytes = Base64.getDecoder().decode(secret);
         return Keys.hmacShaKeyFor(keyBytes);
     }
@@ -50,7 +53,7 @@ public class JwtService {
     }
 
     public <T> T extractClaims(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims  = extractAllClaims(token);
+        final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
 
@@ -63,12 +66,12 @@ public class JwtService {
     }
 
     public Boolean validateToken(String token, UserDetails userDetails) {
-        final String username =extractUsername(token);
+        final String username = extractUsername(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 
     private Boolean isTokenExpired(String token) {
         Date expirationAt = extractClaims(token, Claims::getExpiration);
-        return expirationAt.before(new Date());
+        return expirationAt.before(Date.from(Instant.now()));
     }
 }

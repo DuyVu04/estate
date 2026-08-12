@@ -17,7 +17,7 @@ import java.util.Set;
 @Getter
 public class UserPrincipal implements UserDetails {
 
-    private final User user;
+    private final transient User user;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

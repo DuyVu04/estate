@@ -10,6 +10,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 /**
@@ -31,7 +32,7 @@ public class ReservationExpirationScheduler {
      */
     @Scheduled(fixedRate = 60000)
     public void scanAndExpireReservations() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(ZoneId.systemDefault());
         List<Reservation> expiredReservations = reservationRepository.findByStatusAndExpiresAtBefore(
                 ReservationStatus.ACTIVE, now
         );

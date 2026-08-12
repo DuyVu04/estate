@@ -5,6 +5,8 @@ import com.project.estate.enums.ReservationAction;
 import com.project.estate.enums.ReservationActor;
 import com.project.estate.enums.ReservationStatus;
 import com.project.estate.exception.AppException;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.Value;
 
 import java.util.*;
@@ -13,6 +15,7 @@ import java.util.*;
  * State Machine for Reservation Workflow.
  * Manages valid state transitions and actor authorization.
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ReservationStateMachine {
 
     @Value
