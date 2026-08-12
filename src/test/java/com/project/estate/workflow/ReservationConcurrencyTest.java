@@ -1,5 +1,9 @@
 package com.project.estate.workflow;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import com.project.estate.dto.request.ReservationRequest;
 import com.project.estate.dto.response.ReservationResponse;
 import com.project.estate.entity.Property;
@@ -23,6 +27,14 @@ import com.project.estate.workflow.strategy.WorkflowStrategy;
 import com.project.estate.workflow.strategy.reservation.CancelReservationWorkflowStrategy;
 import com.project.estate.workflow.strategy.reservation.CreateReservationWorkflowStrategy;
 import com.project.estate.workflow.util.SpelEvaluator;
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,147 +44,146 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.aop.aspectj.annotation.AspectJProxyFactory;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class ReservationConcurrencyTest {
 
-    @Mock
-    private ReservationRepository reservationRepository;
+  @Mock private ReservationRepository reservationRepository;
 
-    @Mock
-    private PropertyRepository propertyRepository;
+  @Mock private PropertyRepository propertyRepository;
 
-    @Mock
-    private UserRepository userRepository;
+  @Mock private UserRepository userRepository;
 
-    @Mock
-    private ReservationMapper reservationMapper;
+  @Mock private ReservationMapper reservationMapper;
 
-    @Mock
-    private WorkflowInstanceRepository instanceRepository;
+  @Mock private WorkflowInstanceRepository instanceRepository;
 
-    @Mock
-    private WorkflowHistoryRepository historyRepository;
+  @Mock private WorkflowHistoryRepository historyRepository;
 
-    private ReservationService proxiedReservationService;
+  private ReservationService proxiedReservationService;
 
-    @BeforeEach
-    void setUp() {
-        WorkflowPersistenceService persistenceService = new WorkflowPersistenceService(instanceRepository, historyRepository);
-        SpelEvaluator spelEvaluator = new SpelEvaluator();
+  @BeforeEach
+  void setUp() {
+    WorkflowPersistenceService persistenceService =
+        new WorkflowPersistenceService(instanceRepository, historyRepository);
+    SpelEvaluator spelEvaluator = new SpelEvaluator();
 
-        CreateReservationWorkflowStrategy createStrategy = new CreateReservationWorkflowStrategy();
-        ReflectionTestUtils.setField(createStrategy, "persistenceService", persistenceService);
-        ReflectionTestUtils.setField(createStrategy, "spelEvaluator", spelEvaluator);
+    CreateReservationWorkflowStrategy createStrategy = new CreateReservationWorkflowStrategy();
+    ReflectionTestUtils.setField(createStrategy, "persistenceService", persistenceService);
+    ReflectionTestUtils.setField(createStrategy, "spelEvaluator", spelEvaluator);
 
-        CancelReservationWorkflowStrategy cancelStrategy = new CancelReservationWorkflowStrategy();
-        ReflectionTestUtils.setField(cancelStrategy, "persistenceService", persistenceService);
-        ReflectionTestUtils.setField(cancelStrategy, "spelEvaluator", spelEvaluator);
+    CancelReservationWorkflowStrategy cancelStrategy = new CancelReservationWorkflowStrategy();
+    ReflectionTestUtils.setField(cancelStrategy, "persistenceService", persistenceService);
+    ReflectionTestUtils.setField(cancelStrategy, "spelEvaluator", spelEvaluator);
 
-        List<WorkflowStrategy> strategies = Arrays.asList(createStrategy, cancelStrategy);
-        WorkflowStrategyFactory strategyFactory = new WorkflowStrategyFactory(strategies);
+    List<WorkflowStrategy> strategies = Arrays.asList(createStrategy, cancelStrategy);
+    WorkflowStrategyFactory strategyFactory = new WorkflowStrategyFactory(strategies);
 
-        WorkflowAspect aspect = new WorkflowAspect(strategyFactory);
+    WorkflowAspect aspect = new WorkflowAspect(strategyFactory);
 
-        ReservationService targetService = new ReservationService(
-                reservationRepository, propertyRepository, userRepository, reservationMapper
-        );
+    ReservationService targetService =
+        new ReservationService(
+            reservationRepository, propertyRepository, userRepository, reservationMapper);
 
-        AspectJProxyFactory proxyFactory = new AspectJProxyFactory(targetService);
-        proxyFactory.addAspect(aspect);
-        proxiedReservationService = proxyFactory.getProxy();
-    }
+    AspectJProxyFactory proxyFactory = new AspectJProxyFactory(targetService);
+    proxyFactory.addAspect(aspect);
+    proxiedReservationService = proxyFactory.getProxy();
+  }
 
-    @Test
-    @DisplayName("Concurrency: Simultaneous reservation requests for the same property must allow exactly one success")
-    void concurrentReservation_OnlyOneSucceeds() throws InterruptedException {
-        String propertyId = "prop-concurrent-01";
-        Property property = Property.builder()
-                .id(propertyId)
-                .status(PropertyStatus.AVAILABLE)
-                .version(1L)
-                .price(java.math.BigDecimal.valueOf(5000000000L))
-                .build();
+  @Test
+  @DisplayName(
+      "Concurrency: Simultaneous reservation requests for the same property must allow exactly one success")
+  void concurrentReservation_OnlyOneSucceeds() throws InterruptedException {
+    String propertyId = "prop-concurrent-01";
+    Property property =
+        Property.builder()
+            .id(propertyId)
+            .status(PropertyStatus.AVAILABLE)
+            .version(1L)
+            .price(java.math.BigDecimal.valueOf(5000000000L))
+            .build();
 
-        User userA = User.builder().id("user-a").build();
-        User userB = User.builder().id("user-b").build();
+    User userA = User.builder().id("user-a").build();
+    User userB = User.builder().id("user-b").build();
 
-        lenient().when(propertyRepository.findById(propertyId)).thenReturn(Optional.of(property));
-        lenient().when(userRepository.findById("user-a")).thenReturn(Optional.of(userA));
-        lenient().when(userRepository.findById("user-b")).thenReturn(Optional.of(userB));
+    lenient().when(propertyRepository.findById(propertyId)).thenReturn(Optional.of(property));
+    lenient().when(userRepository.findById("user-a")).thenReturn(Optional.of(userA));
+    lenient().when(userRepository.findById("user-b")).thenReturn(Optional.of(userB));
 
-        // Atomic check simulation: first call returns false (not reserved), subsequent call returns true (already reserved)
-        AtomicInteger activeCheckCount = new AtomicInteger(0);
-        when(reservationRepository.existsByPropertyIdAndStatus(propertyId, ReservationStatus.ACTIVE))
-                .thenAnswer(inv -> activeCheckCount.getAndIncrement() > 0);
+    // Atomic check simulation: first call returns false (not reserved), subsequent call returns
+    // true (already reserved)
+    AtomicInteger activeCheckCount = new AtomicInteger(0);
+    when(reservationRepository.existsByPropertyIdAndStatus(propertyId, ReservationStatus.ACTIVE))
+        .thenAnswer(inv -> activeCheckCount.getAndIncrement() > 0);
 
-        when(instanceRepository.save(any(WorkflowInstance.class))).thenAnswer(inv -> {
-            WorkflowInstance inst = inv.getArgument(0);
-            inst.setId("wf-inst-concurrent-1");
-            return inst;
+    when(instanceRepository.save(any(WorkflowInstance.class)))
+        .thenAnswer(
+            inv -> {
+              WorkflowInstance inst = inv.getArgument(0);
+              inst.setId("wf-inst-concurrent-1");
+              return inst;
+            });
+
+    when(reservationRepository.save(any(Reservation.class)))
+        .thenAnswer(
+            inv -> {
+              Reservation r = inv.getArgument(0);
+              r.setId("res-concurrent-1");
+              return r;
+            });
+
+    when(reservationMapper.toResponse(any(Reservation.class)))
+        .thenReturn(
+            new ReservationResponse(
+                "res-concurrent-1",
+                null,
+                ReservationStatus.ACTIVE,
+                LocalDateTime.now().plusMinutes(15)));
+
+    int numberOfThreads = 2;
+    ExecutorService executor = Executors.newFixedThreadPool(numberOfThreads);
+    CountDownLatch latch = new CountDownLatch(1);
+    CountDownLatch doneLatch = new CountDownLatch(numberOfThreads);
+
+    AtomicInteger successCount = new AtomicInteger(0);
+    AtomicInteger failureCount = new AtomicInteger(0);
+
+    executor.execute(
+        () -> {
+          try {
+            latch.await();
+            proxiedReservationService.reserve(new ReservationRequest(propertyId, "user-a"));
+            successCount.incrementAndGet();
+          } catch (AppException e) {
+            failureCount.incrementAndGet();
+          } catch (Exception ignored) {
+          } finally {
+            doneLatch.countDown();
+          }
         });
 
-        when(reservationRepository.save(any(Reservation.class))).thenAnswer(inv -> {
-            Reservation r = inv.getArgument(0);
-            r.setId("res-concurrent-1");
-            return r;
+    executor.execute(
+        () -> {
+          try {
+            latch.await();
+            proxiedReservationService.reserve(new ReservationRequest(propertyId, "user-b"));
+            successCount.incrementAndGet();
+          } catch (AppException e) {
+            failureCount.incrementAndGet();
+          } catch (Exception ignored) {
+          } finally {
+            doneLatch.countDown();
+          }
         });
 
-        when(reservationMapper.toResponse(any(Reservation.class)))
-                .thenReturn(new ReservationResponse("res-concurrent-1", null, ReservationStatus.ACTIVE, LocalDateTime.now().plusMinutes(15)));
+    // Fire both threads at the exact same moment
+    latch.countDown();
+    doneLatch.await();
+    executor.shutdown();
 
-        int numberOfThreads = 2;
-        ExecutorService executor = Executors.newFixedThreadPool(numberOfThreads);
-        CountDownLatch latch = new CountDownLatch(1);
-        CountDownLatch doneLatch = new CountDownLatch(numberOfThreads);
-
-        AtomicInteger successCount = new AtomicInteger(0);
-        AtomicInteger failureCount = new AtomicInteger(0);
-
-        executor.execute(() -> {
-            try {
-                latch.await();
-                proxiedReservationService.reserve(new ReservationRequest(propertyId, "user-a"));
-                successCount.incrementAndGet();
-            } catch (AppException e) {
-                failureCount.incrementAndGet();
-            } catch (Exception ignored) {
-            } finally {
-                doneLatch.countDown();
-            }
-        });
-
-        executor.execute(() -> {
-            try {
-                latch.await();
-                proxiedReservationService.reserve(new ReservationRequest(propertyId, "user-b"));
-                successCount.incrementAndGet();
-            } catch (AppException e) {
-                failureCount.incrementAndGet();
-            } catch (Exception ignored) {
-            } finally {
-                doneLatch.countDown();
-            }
-        });
-
-        // Fire both threads at the exact same moment
-        latch.countDown();
-        doneLatch.await();
-        executor.shutdown();
-
-        assertEquals(1, successCount.get(), "Exactly one reservation request should succeed");
-        assertEquals(1, failureCount.get(), "Exactly one reservation request should be rejected due to concurrency control");
-    }
+    assertEquals(1, successCount.get(), "Exactly one reservation request should succeed");
+    assertEquals(
+        1,
+        failureCount.get(),
+        "Exactly one reservation request should be rejected due to concurrency control");
+  }
 }

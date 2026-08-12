@@ -1,11 +1,10 @@
 package com.project.estate.entity;
 
 import jakarta.persistence.*;
+import java.time.Instant;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
-
-import java.time.Instant;
 
 @Entity
 @Getter
@@ -15,18 +14,16 @@ import java.time.Instant;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "refresh_tokens")
-public class RefreshToken extends AbstractAuditEntity{
+public class RefreshToken extends AbstractAuditEntity {
 
-    @Column(nullable = false, unique = true)
-    String token;
+  @Column(nullable = false, unique = true)
+  String token;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    User user;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "user_id", nullable = false)
+  User user;
 
-    @Column
-    Instant expiryDate;
+  @Column Instant expiryDate;
 
-    boolean revoked;
-
+  boolean revoked;
 }

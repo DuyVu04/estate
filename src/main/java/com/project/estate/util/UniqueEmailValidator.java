@@ -10,16 +10,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class UniqueEmailValidator implements ConstraintValidator<UniqueEmail, String> {
 
-    private final UserRepository userRepository;
+  private final UserRepository userRepository;
 
-    @Override
-    public boolean isValid(String email,
-                           ConstraintValidatorContext context) {
+  @Override
+  public boolean isValid(String email, ConstraintValidatorContext context) {
 
-        if(email == null)
-            return true;
+    if (email == null) return true;
 
-        return !userRepository.existsByEmail(email);
-    }
-
+    return !userRepository.existsByEmail(email);
+  }
 }

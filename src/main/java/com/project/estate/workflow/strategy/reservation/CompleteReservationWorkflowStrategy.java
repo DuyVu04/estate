@@ -11,18 +11,20 @@ import org.springframework.stereotype.Component;
 @Component
 public class CompleteReservationWorkflowStrategy extends AbstractWorkflowStrategy {
 
-    @Override
-    public ReservationAction getAction() {
-        return ReservationAction.COMPLETE;
-    }
+  @Override
+  public ReservationAction getAction() {
+    return ReservationAction.COMPLETE;
+  }
 
-    @Override
-    protected ReservationActor getDefaultActor() {
-        return ReservationActor.ADMIN;
-    }
+  @Override
+  protected ReservationActor getDefaultActor() {
+    return ReservationActor.ADMIN;
+  }
 
-    @Override
-    protected void doAfterProcess(WorkflowContext context) {
-        log.info("[COMPLETE_STRATEGY] Reservation completed successfully for targetId={}", context.getTargetId());
-    }
+  @Override
+  protected void doAfterProcess(WorkflowContext context) {
+    log.info(
+        "[COMPLETE_STRATEGY] Reservation completed successfully for targetId={}",
+        context.getTargetId());
+  }
 }

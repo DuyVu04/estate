@@ -22,78 +22,70 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class PropertyService {
 
-    private final PropertyRepository propertyRepository;
-    private final PropertyMapper propertyMapper;
+  private final PropertyRepository propertyRepository;
+  private final PropertyMapper propertyMapper;
 
-    /**
-     * Create a new property
-     * Sets default status to AVAILABLE
-     */
-    @Transactional
-    public PropertyResponse createProperty(PropertyCreateRequest request) {
+  /** Create a new property Sets default status to AVAILABLE */
+  @Transactional
+  public PropertyResponse createProperty(PropertyCreateRequest request) {
 
-        Property property = propertyMapper.toProperty(request);
-        property.setStatus(PropertyStatus.AVAILABLE);
+    Property property = propertyMapper.toProperty(request);
+    property.setStatus(PropertyStatus.AVAILABLE);
 
-        propertyRepository.save(property);
-        return propertyMapper.toPropertyResponse(property);
-    }
+    propertyRepository.save(property);
+    return propertyMapper.toPropertyResponse(property);
+  }
 
-    /**
-     * Get property by ID
-     */
-    @Transactional(readOnly = true)
-    public PropertyResponse getPropertyById(String id) {
-        log.info("Fetching property with ID: {}", id);
+  /** Get property by ID */
+  @Transactional(readOnly = true)
+  public PropertyResponse getPropertyById(String id) {
+    log.info("Fetching property with ID: {}", id);
 
-        Property property = propertyRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.PROPERTY_NOT_FOUND));
+    Property property =
+        propertyRepository
+            .findById(id)
+            .orElseThrow(() -> new AppException(ErrorCode.PROPERTY_NOT_FOUND));
 
-        return propertyMapper.toPropertyResponse(property);
-    }
+    return propertyMapper.toPropertyResponse(property);
+  }
 
-    /**
-     * Update property
-     * Does not modify status or version
-     */
-    @Transactional
-    public PropertyResponse updateProperty(String id, PropertyUpdateRequest request) {
-        log.info("Updating property with ID: {}", id);
+  /** Update property Does not modify status or version */
+  @Transactional
+  public PropertyResponse updateProperty(String id, PropertyUpdateRequest request) {
+    log.info("Updating property with ID: {}", id);
 
-        Property property = propertyRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.PROPERTY_NOT_FOUND));
+    Property property =
+        propertyRepository
+            .findById(id)
+            .orElseThrow(() -> new AppException(ErrorCode.PROPERTY_NOT_FOUND));
 
-        propertyMapper.updateProperty(request, property);
+    propertyMapper.updateProperty(request, property);
 
-        Property updatedProperty = propertyRepository.save(property);
-        log.info("Property updated successfully with ID: {}", updatedProperty.getId());
+    Property updatedProperty = propertyRepository.save(property);
+    log.info("Property updated successfully with ID: {}", updatedProperty.getId());
 
-        return propertyMapper.toPropertyResponse(updatedProperty);
-    }
+    return propertyMapper.toPropertyResponse(updatedProperty);
+  }
 
-    /**
-     * Delete property
-     */
-    @Transactional
-    public void deleteProperty(String id) {
-        log.info("Deleting property with ID: {}", id);
+  /** Delete property */
+  @Transactional
+  public void deleteProperty(String id) {
+    log.info("Deleting property with ID: {}", id);
 
-        Property property = propertyRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.PROPERTY_NOT_FOUND));
+    Property property =
+        propertyRepository
+            .findById(id)
+            .orElseThrow(() -> new AppException(ErrorCode.PROPERTY_NOT_FOUND));
 
-        propertyRepository.delete(property);
-        log.info("Property deleted successfully with ID: {}", id);
-    }
+    propertyRepository.delete(property);
+    log.info("Property deleted successfully with ID: {}", id);
+  }
 
-    @Transactional(readOnly = true)
-    public Page<PropertyResponse> search(
-            Specification<Property> specification,
-            Pageable pageable
-    ) {
+  @Transactional(readOnly = true)
+  public Page<PropertyResponse> search(Specification<Property> specification, Pageable pageable) {
 
-        return propertyRepository
-                .findAll(specification, pageable)
-                .map(propertyMapper::toPropertyResponse);
-    }
-
+    return propertyRepository
+        .findAll(specification, pageable)
+        .map(propertyMapper::toPropertyResponse);
+  }
 }

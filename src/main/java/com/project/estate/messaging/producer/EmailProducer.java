@@ -13,35 +13,25 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class EmailProducer {
 
-    private final RabbitTemplate rabbitTemplate;
+  private final RabbitTemplate rabbitTemplate;
 
-    @Value("${rabbitmq.exchange.email}")
-    private String exchange;
+  @Value("${rabbitmq.exchange.email}")
+  private String exchange;
 
-    @Value("${rabbitmq.routing-key.email}")
-    private String routingKey;
+  @Value("${rabbitmq.routing-key.email}")
+  private String routingKey;
 
-    public void send(EmailVerificationMessage message) {
+  public void send(EmailVerificationMessage message) {
 
-        log.info("Sending verification message: {}", message);
+    log.info("Sending verification message: {}", message);
 
-        rabbitTemplate.convertAndSend(
-                exchange,
-                routingKey,
-                message
-        );
+    rabbitTemplate.convertAndSend(exchange, routingKey, message);
+  }
 
-    }
+  public void sendDepositPaid(DepositPaidMessage message) {
 
-    public void sendDepositPaid(DepositPaidMessage message) {
+    log.info("Sending deposit paid message: {}", message);
 
-        log.info("Sending deposit paid message: {}", message);
-
-        rabbitTemplate.convertAndSend(
-                exchange,
-                routingKey,
-                message
-        );
-
-    }
+    rabbitTemplate.convertAndSend(exchange, routingKey, message);
+  }
 }

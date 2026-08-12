@@ -20,52 +20,41 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class PropertyController {
 
-    private final PropertyService propertyService;
+  private final PropertyService propertyService;
 
-    /**
-     * Public endpoint - Get property by ID
-     */
-    @GetMapping("/{id}")
-    public ApiResponse<PropertyResponse> getPropertyById(@PathVariable String id) {
-        return ApiResponse.success(propertyService.getPropertyById(id));
-    }
+  /** Public endpoint - Get property by ID */
+  @GetMapping("/{id}")
+  public ApiResponse<PropertyResponse> getPropertyById(@PathVariable String id) {
+    return ApiResponse.success(propertyService.getPropertyById(id));
+  }
 
-    /**
-     * Admin endpoint - Create property
-     */
-    @PostMapping()
-    @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<PropertyResponse> createProperty(@RequestBody @Valid PropertyCreateRequest request) {
-        return ApiResponse.success(propertyService.createProperty(request));
-    }
+  /** Admin endpoint - Create property */
+  @PostMapping()
+  @PreAuthorize("hasRole('ADMIN')")
+  public ApiResponse<PropertyResponse> createProperty(
+      @RequestBody @Valid PropertyCreateRequest request) {
+    return ApiResponse.success(propertyService.createProperty(request));
+  }
 
-    /**
-     * Admin endpoint - Update property
-     */
-    @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<PropertyResponse> updateProperty(
-            @PathVariable String id,
-            @RequestBody @Valid PropertyUpdateRequest request) {
-        return ApiResponse.success(propertyService.updateProperty(id, request));
-    }
+  /** Admin endpoint - Update property */
+  @PutMapping("/{id}")
+  @PreAuthorize("hasRole('ADMIN')")
+  public ApiResponse<PropertyResponse> updateProperty(
+      @PathVariable String id, @RequestBody @Valid PropertyUpdateRequest request) {
+    return ApiResponse.success(propertyService.updateProperty(id, request));
+  }
 
-    /**
-     * Admin endpoint - Delete property
-     */
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<Void> deleteProperty(@PathVariable String id) {
-        propertyService.deleteProperty(id);
-        return ApiResponse.success();
-    }
+  /** Admin endpoint - Delete property */
+  @DeleteMapping("/{id}")
+  @PreAuthorize("hasRole('ADMIN')")
+  public ApiResponse<Void> deleteProperty(@PathVariable String id) {
+    propertyService.deleteProperty(id);
+    return ApiResponse.success();
+  }
 
-
-    @GetMapping()
-    public ApiResponse<PageResponse<PropertyResponse>> getPropertiesByFilter (
-            @Filter Specification<Property> specification,Pageable pageable){
-        return ApiResponse.success(
-                PageResponse
-                        .of(propertyService.search(specification, pageable)));
-    }
+  @GetMapping()
+  public ApiResponse<PageResponse<PropertyResponse>> getPropertiesByFilter(
+      @Filter Specification<Property> specification, Pageable pageable) {
+    return ApiResponse.success(PageResponse.of(propertyService.search(specification, pageable)));
+  }
 }

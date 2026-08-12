@@ -10,13 +10,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class CreateReservationWorkflowStrategy extends AbstractWorkflowStrategy {
 
-    @Override
-    public ReservationAction getAction() {
-        return ReservationAction.CREATE;
-    }
+  @Override
+  public ReservationAction getAction() {
+    return ReservationAction.CREATE;
+  }
 
-    @Override
-    protected void doAfterProcess(WorkflowContext context) {
-        log.info("[CREATE_STRATEGY] Reservation created successfully for targetId={}", context.getTargetId());
-    }
+  @Override
+  protected void doAfterProcess(WorkflowContext context) {
+    log.info(
+        "[CREATE_STRATEGY] Reservation created successfully for targetId={}",
+        context.getTargetId());
+  }
 }

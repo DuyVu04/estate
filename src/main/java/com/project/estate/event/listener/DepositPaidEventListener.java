@@ -14,24 +14,28 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @RequiredArgsConstructor
 public class DepositPaidEventListener {
 
-    private final EmailTemplateService emailTemplateService;
+  private final EmailTemplateService emailTemplateService;
 
-    @Async
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handleDepositPaidEvent(DepositPaidEvent event) {
-        log.info("[EVENT_LISTENER] Received DepositPaidEvent for reservationId={}, userEmail={}",
-                event.getReservationId(), event.getUserEmail());
-        try {
-            emailTemplateService.sendDepositPaidEmail(
-                    event.getUserEmail(),
-                    event.getReservationId(),
-                    event.getPropertyTitle(),
-                    event.getAmount(),
-                    event.getTransactionRef()
-            );
-            log.info("[EVENT_LISTENER] Confirmation email sent successfully to {}", event.getUserEmail());
-        } catch (Exception e) {
-            log.error("[EVENT_LISTENER] Failed to send deposit confirmation email to {}", event.getUserEmail(), e);
-        }
+  @Async
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  public void handleDepositPaidEvent(DepositPaidEvent event) {
+    log.info(
+        "[EVENT_LISTENER] Received DepositPaidEvent for reservationId={}, userEmail={}",
+        event.getReservationId(),
+        event.getUserEmail());
+    try {
+      emailTemplateService.sendDepositPaidEmail(
+          event.getUserEmail(),
+          event.getReservationId(),
+          event.getPropertyTitle(),
+          event.getAmount(),
+          event.getTransactionRef());
+      log.info("[EVENT_LISTENER] Confirmation email sent successfully to {}", event.getUserEmail());
+    } catch (Exception e) {
+      log.error(
+          "[EVENT_LISTENER] Failed to send deposit confirmation email to {}",
+          event.getUserEmail(),
+          e);
     }
+  }
 }

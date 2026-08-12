@@ -11,18 +11,20 @@ import org.springframework.stereotype.Component;
 @Component
 public class ExpireReservationWorkflowStrategy extends AbstractWorkflowStrategy {
 
-    @Override
-    public ReservationAction getAction() {
-        return ReservationAction.EXPIRE;
-    }
+  @Override
+  public ReservationAction getAction() {
+    return ReservationAction.EXPIRE;
+  }
 
-    @Override
-    protected ReservationActor getDefaultActor() {
-        return ReservationActor.SYSTEM;
-    }
+  @Override
+  protected ReservationActor getDefaultActor() {
+    return ReservationActor.SYSTEM;
+  }
 
-    @Override
-    protected void doAfterProcess(WorkflowContext context) {
-        log.info("[EXPIRE_STRATEGY] Reservation expired successfully for targetId={}", context.getTargetId());
-    }
+  @Override
+  protected void doAfterProcess(WorkflowContext context) {
+    log.info(
+        "[EXPIRE_STRATEGY] Reservation expired successfully for targetId={}",
+        context.getTargetId());
+  }
 }

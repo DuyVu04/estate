@@ -1,6 +1,5 @@
 package com.project.estate.controller;
 
-
 import com.project.estate.common.response.ApiResponse;
 import com.project.estate.common.response.PageResponse;
 import com.project.estate.dto.request.ReservationRequest;
@@ -18,26 +17,24 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class ReservationController {
 
-    private final ReservationService reservationService;
+  private final ReservationService reservationService;
 
-    @GetMapping
-    public ApiResponse<PageResponse<ReservationResponse>> getReservations(
-            @Filter Specification<Reservation> specification,
-            Pageable pageable
-    ) {
-        return ApiResponse.success(PageResponse.of(reservationService.getReservations(specification,pageable)));
-    }
+  @GetMapping
+  public ApiResponse<PageResponse<ReservationResponse>> getReservations(
+      @Filter Specification<Reservation> specification, Pageable pageable) {
+    return ApiResponse.success(
+        PageResponse.of(reservationService.getReservations(specification, pageable)));
+  }
 
+  @PostMapping
+  public ApiResponse<ReservationResponse> createReservation(
+      @RequestBody ReservationRequest reservation) {
+    return ApiResponse.success(reservationService.reserve(reservation));
+  }
 
-    @PostMapping
-    public ApiResponse<ReservationResponse> createReservation(@RequestBody ReservationRequest reservation) {
-        return ApiResponse.success(reservationService.reserve(reservation));
-    }
-
-    @DeleteMapping("{id}")
-    public ApiResponse<Void> cancelReservation(@PathVariable String id) {
-        reservationService.cancelReservation(id);
-        return ApiResponse.success(null);
-    }
-
+  @DeleteMapping("{id}")
+  public ApiResponse<Void> cancelReservation(@PathVariable String id) {
+    reservationService.cancelReservation(id);
+    return ApiResponse.success(null);
+  }
 }

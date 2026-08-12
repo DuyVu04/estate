@@ -15,23 +15,22 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class EmailController {
 
-    private final MailService emailService;
+  private final MailService emailService;
 
-    private final AuthService authService;
+  private final AuthService authService;
 
-    @GetMapping("/send-email")
-    public ApiResponse<Void> sendEmail(@RequestParam String to, @RequestParam String subject, @RequestParam String content) {
-        emailService.sendText(to, subject, content);
-        return ApiResponse.success();
-    }
+  @GetMapping("/send-email")
+  public ApiResponse<Void> sendEmail(
+      @RequestParam String to, @RequestParam String subject, @RequestParam String content) {
+    emailService.sendText(to, subject, content);
+    return ApiResponse.success();
+  }
 
-    @PostMapping("/resend-verification-email")
-    public ApiResponse<Void> resendVerificationEmail(
-            @Valid @RequestBody ResendVerificationRequest request
+  @PostMapping("/resend-verification-email")
+  public ApiResponse<Void> resendVerificationEmail(
+      @Valid @RequestBody ResendVerificationRequest request) {
 
-    ) {
-        authService.resendVerificationEmail(request.email());
-        return ApiResponse.success();
-    }
-
+    authService.resendVerificationEmail(request.email());
+    return ApiResponse.success();
+  }
 }

@@ -11,21 +11,21 @@ import org.mapstruct.MappingTarget;
 @Mapper(componentModel = "spring")
 public interface PropertyMapper {
 
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "status", ignore = true)
-    @Mapping(target = "version", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "images", ignore = true)
-    Property toProperty(PropertyCreateRequest request);
+  @Mapping(target = "id", ignore = true)
+  @Mapping(target = "status", ignore = true)
+  @Mapping(target = "version", ignore = true)
+  @Mapping(target = "createdAt", ignore = true)
+  @Mapping(target = "updatedAt", ignore = true)
+  @Mapping(target = "images", ignore = true)
+  Property toProperty(PropertyCreateRequest request);
 
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "status", ignore = true)
-    @Mapping(target = "version", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "images", ignore = true)
-    void updateProperty(PropertyUpdateRequest request, @MappingTarget Property property);
+  @Mapping(target = "id", ignore = true)
+  @Mapping(target = "status", ignore = true)
+  @Mapping(target = "version", ignore = true)
+  @Mapping(target = "createdAt", ignore = true)
+  @Mapping(target = "updatedAt", ignore = true)
+  @Mapping(target = "images", ignore = true)
+  void updateProperty(PropertyUpdateRequest request, @MappingTarget Property property);
 
-    PropertyResponse toPropertyResponse(Property property);
+  PropertyResponse toPropertyResponse(Property property);
 }

@@ -17,39 +17,38 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final AuthService authService;
-    private final UserService userService;
+  private final AuthService authService;
+  private final UserService userService;
 
-    @GetMapping("/me")
-    public ApiResponse<UserResponse> getMyInfo() {
-        return ApiResponse.success(authService.getMyInfo());
-    }
+  @GetMapping("/me")
+  public ApiResponse<UserResponse> getMyInfo() {
+    return ApiResponse.success(authService.getMyInfo());
+  }
 
-    @PostMapping("/login")
-    public ApiResponse<TokenResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
-        return ApiResponse.success(authService.login(loginRequest));
-    }
+  @PostMapping("/login")
+  public ApiResponse<TokenResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
+    return ApiResponse.success(authService.login(loginRequest));
+  }
 
-    @PostMapping("/register")
-    public ApiResponse<UserResponse> register(@Valid @RequestBody UserRequest userRequest) {
-        return ApiResponse.success(userService.createUser(userRequest));
-    }
+  @PostMapping("/register")
+  public ApiResponse<UserResponse> register(@Valid @RequestBody UserRequest userRequest) {
+    return ApiResponse.success(userService.createUser(userRequest));
+  }
 
-    @PostMapping("/refresh")
-    public ApiResponse<TokenResponse> refresh(@RequestBody RefreshTokenRequest request) {
-        return ApiResponse.success(authService.refreshToken(request));
-    }
+  @PostMapping("/refresh")
+  public ApiResponse<TokenResponse> refresh(@RequestBody RefreshTokenRequest request) {
+    return ApiResponse.success(authService.refreshToken(request));
+  }
 
-    @DeleteMapping("/logout")
-    public ApiResponse<Void> logout (@RequestHeader ("Authorization") String authorizationHeader) {
-        authService.logout(authorizationHeader);
-        return ApiResponse.success();
-    }
+  @DeleteMapping("/logout")
+  public ApiResponse<Void> logout(@RequestHeader("Authorization") String authorizationHeader) {
+    authService.logout(authorizationHeader);
+    return ApiResponse.success();
+  }
 
-    @GetMapping("/verify")
-    public ApiResponse<Void> confirmEmail(@RequestParam String token)  {
-        authService.confirmEmail(token);
-        return ApiResponse.success();
-    }
+  @GetMapping("/verify")
+  public ApiResponse<Void> confirmEmail(@RequestParam String token) {
+    authService.confirmEmail(token);
+    return ApiResponse.success();
+  }
 }
-

@@ -15,13 +15,13 @@ import lombok.experimental.SuperBuilder;
 @Table(name = "property_images")
 public class PropertyImage extends AbstractAuditEntity {
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "property_id", nullable = false)
-    Property property;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "property_id", nullable = false)
+  Property property;
 
-    @Column(nullable = false, length = 500)
-    String url;
+  @Column(nullable = false, length = 500)
+  String url;
 
-    @Column(name = "sort_order")
-    Integer sortOrder;
+  @Column(name = "sort_order")
+  Integer sortOrder;
 }

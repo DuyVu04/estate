@@ -10,13 +10,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class CancelReservationWorkflowStrategy extends AbstractWorkflowStrategy {
 
-    @Override
-    public ReservationAction getAction() {
-        return ReservationAction.CANCEL;
-    }
+  @Override
+  public ReservationAction getAction() {
+    return ReservationAction.CANCEL;
+  }
 
-    @Override
-    protected void doAfterProcess(WorkflowContext context) {
-        log.info("[CANCEL_STRATEGY] Reservation cancelled successfully for targetId={}", context.getTargetId());
-    }
+  @Override
+  protected void doAfterProcess(WorkflowContext context) {
+    log.info(
+        "[CANCEL_STRATEGY] Reservation cancelled successfully for targetId={}",
+        context.getTargetId());
+  }
 }

@@ -14,6 +14,6 @@ import lombok.Setter;
 @Builder
 public class StripeConfirmRequest {
 
-    @JsonAlias({"session_id", "sessionId"})
-    private String sessionId;
+  @JsonAlias({"session_id", "sessionId"})
+  private String sessionId;
 }

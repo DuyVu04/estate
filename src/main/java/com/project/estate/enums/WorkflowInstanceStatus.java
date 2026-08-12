@@ -3,21 +3,21 @@ package com.project.estate.enums;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public enum WorkflowInstanceStatus {
-    @JsonProperty("in_progress")
-    IN_PROGRESS,
+  @JsonProperty("in_progress")
+  IN_PROGRESS,
 
-    @JsonProperty("completed")
-    COMPLETED,
+  @JsonProperty("completed")
+  COMPLETED,
 
-    @JsonProperty("cancelled")
-    CANCELLED,
+  @JsonProperty("cancelled")
+  CANCELLED,
 
-    @JsonProperty("expired")
-    EXPIRED,
+  @JsonProperty("expired")
+  EXPIRED,
 
-    @JsonProperty("failed")
-    FAILED,
+  @JsonProperty("failed")
+  FAILED,
 
-    @JsonProperty("deposit_paid")
-    DEPOSIT_PAID
+  @JsonProperty("deposit_paid")
+  DEPOSIT_PAID
 }

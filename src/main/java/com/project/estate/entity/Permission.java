@@ -5,7 +5,6 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
-
 @Entity
 @Getter
 @Setter
@@ -16,9 +15,8 @@ import lombok.experimental.SuperBuilder;
 @Table(name = "permissions")
 public class Permission extends AbstractAuditEntity {
 
-    @Column(nullable = false, unique = true)
-    String name;
+  @Column(nullable = false, unique = true)
+  String name;
 
-    String description;
-
+  String description;
 }
