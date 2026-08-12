@@ -22,6 +22,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -80,7 +81,7 @@ public class AuthService {
                     .accessToken(accessToken)
                     .refreshToken(refreshToken.getToken())
                     .build();
-        } catch (org.springframework.security.core.AuthenticationException ex) {
+        } catch (AuthenticationException ex) {
             log.warn("Login failed for user {}: {}", loginRequest.username(), ex.getMessage());
             throw new AppException(ErrorCode.INVALID_USERNAME_OR_PASSWORD);
         }
