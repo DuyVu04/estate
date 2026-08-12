@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -57,6 +58,17 @@ public class UserService {
     log.info("Access to database");
     log.info("User found: {}", user);
     return userMapper.toUserResponse(user);
+  }
+
+  @PreAuthorize("hasRole('ROLE_ADMIN')")
+  @CacheEvict(value = "users", key = "#userId")
+  public void deleteUser(String userId) {
+    var user =
+        userRepository
+            .findById(userId)
+            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+    userRepository.delete(user);
+    log.info("Deleted user with id: {}", userId);
   }
 
   public UserResponse createUser(UserRequest userRequest) {
