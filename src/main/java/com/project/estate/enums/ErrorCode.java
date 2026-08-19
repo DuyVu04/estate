@@ -69,6 +69,11 @@ public enum ErrorCode {
   INVALID_PAYMENT_AMOUNT(
       1502, "Payment amount does not match deposit requirement", HttpStatus.BAD_REQUEST),
 
+  CONCURRENT_REQUEST(
+      1503,
+      "Property is being processed by another user, please try again later.",
+      HttpStatus.CONFLICT),
+
   INTERNAL_SERVER_ERROR(9999, "Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
 
   private final int code;

@@ -3,9 +3,9 @@ spring:
     activate:
       on-profile: test
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:5432/my-estate
-    username: ${DB_USER}
-    password: ${DB_PASSWORD}
+    url: jdbc:postgresql://${DB_HOST:localhost}:5432/${DB_NAME:my-estate}
+    username: ${DB_USER:duyvu}
+    password: ${DB_PASSWORD:123456789}
     driver-class-name: org.postgresql.Driver
     hikari:
       max-lifetime: 300000
@@ -21,18 +21,18 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
   sendgrid:
-    api-key: ${SENDGRID_API_KEY}
-    from-email: ${SENDGRID_FROM_EMAIL}
+    api-key: ${SENDGRID_API_KEY:SG.placeholder}
+    from-email: ${SENDGRID_FROM_EMAIL:test@example.com}
   flyway:
-    enabled: true
+    enabled: false
     locations: classpath:db/migration
     baseline-on-migrate: true
   mail:
-    from: ${SPRING_MAIL_FROM}
-    port: ${SPRING_MAIL_PORT}
-    host: ${SPRING_MAIL_HOST}
-    username: ${SPRING_MAIL_USERNAME}
-    password: ${SPRING_MAIL_PASSWORD}
+    from: ${SPRING_MAIL_FROM:test@example.com}
+    port: ${SPRING_MAIL_PORT:587}
+    host: ${SPRING_MAIL_HOST:smtp.gmail.com}
+    username: ${SPRING_MAIL_USERNAME:test@example.com}
+    password: ${SPRING_MAIL_PASSWORD:password}
     properties:
       mail:
         smtp:
@@ -41,23 +41,23 @@ spring:
             enable: true
   data:
     redis:
-      host: localhost
-      port: 6380
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
       database: 0
       timeout: 5s
   rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: ${SPRING_RABBITMQ_PORT:5672}
+    username: ${SPRING_RABBITMQ_USERNAME:guest}
+    password: ${SPRING_RABBITMQ_PASSWORD:guest}
     listener:
       simple:
         acknowledge-mode: manual
 
 jwt:
-  secret : ${SECRET_KEY}
-  expiration : ${EXPIRATION}
-  refresh-expiration : ${REFRESH_EXPIRATION}
+  secret : ${SECRET_KEY:f513f80749396f4fbad6e62e4a40cf013b3cd86e4ffc88b7c39a075ac656f235}
+  expiration : ${EXPIRATION:3600000}
+  refresh-expiration : ${REFRESH_EXPIRATION:86400000}
 
 openapi:
   service:
@@ -86,5 +86,7 @@ app:
     login:
       max-attempts: 5
       duration: 1m
+  lock:
+    reservation-wait-time-seconds: 3
 
-default-admin: ${DEFAULT_ADMIN_USERNAME}
+default-admin: ${DEFAULT_ADMIN_USERNAME:admin}

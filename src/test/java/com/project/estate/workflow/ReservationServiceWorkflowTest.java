@@ -21,6 +21,7 @@ import com.project.estate.repository.UserRepository;
 import com.project.estate.repository.WorkflowHistoryRepository;
 import com.project.estate.repository.WorkflowInstanceRepository;
 import com.project.estate.service.ReservationService;
+import com.project.estate.service.ReservationTransactionalHandler;
 import com.project.estate.workflow.aspect.WorkflowAspect;
 import com.project.estate.workflow.factory.WorkflowStrategyFactory;
 import com.project.estate.workflow.service.WorkflowPersistenceService;
@@ -58,10 +59,18 @@ class ReservationServiceWorkflowTest {
 
   @Mock private WorkflowHistoryRepository historyRepository;
 
+  @Mock private org.redisson.api.RedissonClient redissonClient;
+
+  @Mock private org.redisson.api.RLock rLock;
+
+  @Mock private org.springframework.cache.CacheManager cacheManager;
+
+  @Mock private org.springframework.cache.Cache cache;
+
   private ReservationService proxiedReservationService;
 
   @BeforeEach
-  void setUp() {
+  void setUp() throws InterruptedException {
     WorkflowPersistenceService persistenceService =
         new WorkflowPersistenceService(instanceRepository, historyRepository);
     SpelEvaluator spelEvaluator = new SpelEvaluator();
@@ -89,13 +98,24 @@ class ReservationServiceWorkflowTest {
 
     WorkflowAspect aspect = new WorkflowAspect(strategyFactory);
 
-    ReservationService targetService =
-        new ReservationService(
+    ReservationTransactionalHandler targetHandler =
+        new ReservationTransactionalHandler(
             reservationRepository, propertyRepository, userRepository, reservationMapper);
 
-    AspectJProxyFactory proxyFactory = new AspectJProxyFactory(targetService);
+    AspectJProxyFactory proxyFactory = new AspectJProxyFactory(targetHandler);
     proxyFactory.addAspect(aspect);
-    proxiedReservationService = proxyFactory.getProxy();
+    ReservationTransactionalHandler proxiedHandler = proxyFactory.getProxy();
+
+    lenient().when(redissonClient.getLock(anyString())).thenReturn(rLock);
+    lenient()
+        .when(rLock.tryLock(anyLong(), any(java.util.concurrent.TimeUnit.class)))
+        .thenReturn(true);
+    lenient().when(rLock.isHeldByCurrentThread()).thenReturn(true);
+    lenient().when(cacheManager.getCache(anyString())).thenReturn(cache);
+
+    proxiedReservationService =
+        new ReservationService(
+            reservationRepository, reservationMapper, proxiedHandler, redissonClient, cacheManager);
   }
 
   @Test

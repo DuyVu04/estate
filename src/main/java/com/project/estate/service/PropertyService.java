@@ -11,6 +11,8 @@ import com.project.estate.mapper.PropertyMapper;
 import com.project.estate.repository.PropertyRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -36,10 +38,11 @@ public class PropertyService {
     return propertyMapper.toPropertyResponse(property);
   }
 
-  /** Get property by ID */
+  /** Get property by ID - Cached in Redis (key: property_detail::{id}) */
+  @Cacheable(value = "property_detail", key = "#id")
   @Transactional(readOnly = true)
   public PropertyResponse getPropertyById(String id) {
-    log.info("Fetching property with ID: {}", id);
+    log.info("Fetching property from DB for ID: {}", id);
 
     Property property =
         propertyRepository
@@ -49,7 +52,8 @@ public class PropertyService {
     return propertyMapper.toPropertyResponse(property);
   }
 
-  /** Update property Does not modify status or version */
+  /** Update property - Evict Redis Cache on modification */
+  @CacheEvict(value = "property_detail", key = "#id")
   @Transactional
   public PropertyResponse updateProperty(String id, PropertyUpdateRequest request) {
     log.info("Updating property with ID: {}", id);
@@ -67,7 +71,8 @@ public class PropertyService {
     return propertyMapper.toPropertyResponse(updatedProperty);
   }
 
-  /** Delete property */
+  /** Delete property - Evict Redis Cache on deletion */
+  @CacheEvict(value = "property_detail", key = "#id")
   @Transactional
   public void deleteProperty(String id) {
     log.info("Deleting property with ID: {}", id);
