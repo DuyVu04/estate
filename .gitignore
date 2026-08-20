@@ -36,3 +36,6 @@ build/
 
 src/main/resources/application-dev.yml
 docs/
+
+# Security Testing (Local Scanner & Reports)
+security-testing/

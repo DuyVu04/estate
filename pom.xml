@@ -29,6 +29,7 @@
 	<properties>
 		<java.version>21</java.version>
 		<mapstruct.version>1.6.3</mapstruct.version>
+		<spring.profiles.active>dev</spring.profiles.active>
 	</properties>
 
 	<dependencies>
@@ -225,6 +226,9 @@
 	<profiles>
 		<profile>
 			<id>dev</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
 			<properties>
 				<spring.profiles.active>dev</spring.profiles.active>
 			</properties>
