@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class RabbitConfig {
+public class RabbitMQConfig {
   @Value("${rabbitmq.queue.email}")
   private String emailQueue;
 
@@ -39,9 +39,28 @@ public class RabbitConfig {
   @Value("${rabbitmq.routing-key.retry}")
   private String retryRoutingKey;
 
+  @Value("${rabbitmq.exchange.property:property.exchange}")
+  private String propertyExchange;
+
+  @Value("${rabbitmq.queue.property-embedding:property.embedding.queue}")
+  private String embeddingQueue;
+
+  @Value("${rabbitmq.routing-key.property-embedding:property.embedding}")
+  private String embeddingRoutingKey;
+
   @Bean
   public Queue emailQueue() {
     return QueueBuilder.durable(emailQueue).build();
+  }
+
+  @Bean
+  public TopicExchange propertyExchange() {
+    return new TopicExchange(propertyExchange, true, false);
+  }
+
+  @Bean
+  public Queue embeddingQueue() {
+    return QueueBuilder.durable(embeddingQueue).build();
   }
 
   @Bean
@@ -51,7 +70,6 @@ public class RabbitConfig {
 
   @Bean
   public DirectExchange deadLetterExchange() {
-
     return ExchangeBuilder.directExchange(deadLetterExchange).durable(true).build();
   }
 
@@ -67,15 +85,11 @@ public class RabbitConfig {
 
   @Bean
   public Queue retryQueue() {
-
     return QueueBuilder.durable(retryQueue)
-
         // Sau 10 giây
         .ttl(10000)
-
         // Quay về email.exchange
         .deadLetterExchange(emailExchange)
-
         // Routing lại email.queue
         .deadLetterRoutingKey(emailRoutingKey)
         .build();
@@ -84,7 +98,6 @@ public class RabbitConfig {
   @Bean
   public Binding emailBinding(
       @Qualifier("emailQueue") Queue queue, @Qualifier("emailExchange") DirectExchange exchange) {
-
     return BindingBuilder.bind(queue).to(exchange).with(emailRoutingKey);
   }
 
@@ -92,15 +105,20 @@ public class RabbitConfig {
   public Binding deadLetterBinding(
       @Qualifier("deadLetterQueue") Queue queue,
       @Qualifier("deadLetterExchange") DirectExchange exchange) {
-
     return BindingBuilder.bind(queue).to(exchange).with(deadLetterRoutingKey);
   }
 
   @Bean
   public Binding retryBinding(
       @Qualifier("retryQueue") Queue queue, @Qualifier("retryExchange") DirectExchange exchange) {
-
     return BindingBuilder.bind(queue).to(exchange).with(retryRoutingKey);
+  }
+
+  @Bean
+  public Binding embeddingBinding(
+      @Qualifier("embeddingQueue") Queue queue,
+      @Qualifier("propertyExchange") TopicExchange exchange) {
+    return BindingBuilder.bind(queue).to(exchange).with(embeddingRoutingKey);
   }
 
   @Bean
@@ -111,11 +129,8 @@ public class RabbitConfig {
   @Bean
   public RabbitTemplate rabbitTemplate(
       ConnectionFactory connectionFactory, MessageConverter messageConverter) {
-
     RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
-
     rabbitTemplate.setMessageConverter(messageConverter);
-
     return rabbitTemplate;
   }
 }

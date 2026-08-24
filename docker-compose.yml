@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:16-alpine
+    image: pgvector/pgvector:pg16
     container_name: estate-db
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
@@ -123,12 +123,25 @@ services:
     networks:
       - backend-network
 
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: estate-qdrant
+    restart: unless-stopped
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrantdata:/qdrant/storage
+    networks:
+      - backend-network
+
 volumes:
   pgdata:
   redisdata:
   rabbitdata:
   prometheusdata:
   grafanadata:
+  qdrantdata:
 
 networks:
   backend-network:

@@ -26,6 +26,7 @@ public class PropertyService {
 
   private final PropertyRepository propertyRepository;
   private final PropertyMapper propertyMapper;
+  private final com.project.estate.messaging.producer.PropertyVectorProducer propertyVectorProducer;
 
   /** Create a new property Sets default status to AVAILABLE */
   @Transactional
@@ -35,6 +36,7 @@ public class PropertyService {
     property.setStatus(PropertyStatus.AVAILABLE);
 
     propertyRepository.save(property);
+    propertyVectorProducer.publishPropertyEmbeddingTask(property.getId());
     return propertyMapper.toPropertyResponse(property);
   }
 
@@ -66,6 +68,7 @@ public class PropertyService {
     propertyMapper.updateProperty(request, property);
 
     Property updatedProperty = propertyRepository.save(property);
+    propertyVectorProducer.publishPropertyEmbeddingTask(updatedProperty.getId());
     log.info("Property updated successfully with ID: {}", updatedProperty.getId());
 
     return propertyMapper.toPropertyResponse(updatedProperty);

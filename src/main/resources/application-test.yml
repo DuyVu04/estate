@@ -42,7 +42,7 @@ spring:
   data:
     redis:
       host: ${SPRING_DATA_REDIS_HOST:localhost}
-      port: ${SPRING_DATA_REDIS_PORT:6379}
+      port: ${SPRING_DATA_REDIS_PORT:6380}
       database: 0
       timeout: 5s
   rabbitmq:
@@ -88,5 +88,22 @@ app:
       duration: 1m
   lock:
     reservation-wait-time-seconds: 3
+  ai:
+    openai:
+      base-url: https://generativelanguage.googleapis.com/v1beta/openai
+      api-key: ${GEMINI_API_KEY:mock-api-key}
+      chat:
+        options:
+          model: gemini-3.6-flash
+      embedding:
+        options:
+          model: gemini-embedding-001
+          dimensions: 768
+
+stripe:
+  api-key: ${STRIPE_API_KEY:sk_test_placeholder}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET:whsec_placeholder}
+  success-url: ${STRIPE_SUCCESS_URL:http://localhost:3000/payment/success?session_id={CHECKOUT_SESSION_ID}}
+  cancel-url: ${STRIPE_CANCEL_URL:http://localhost:3000/payment/cancel}
 
 default-admin: ${DEFAULT_ADMIN_USERNAME:admin}

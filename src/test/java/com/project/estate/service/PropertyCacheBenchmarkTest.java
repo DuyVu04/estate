@@ -43,6 +43,11 @@ class PropertyCacheBenchmarkTest {
     public PropertyMapper propertyMapper() {
       return mock(PropertyMapper.class);
     }
+
+    @Bean
+    public com.project.estate.messaging.producer.PropertyVectorProducer propertyVectorProducer() {
+      return mock(com.project.estate.messaging.producer.PropertyVectorProducer.class);
+    }
   }
 
   @Autowired private PropertyService propertyService;
