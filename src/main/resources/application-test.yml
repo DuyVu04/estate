@@ -53,11 +53,22 @@ spring:
     listener:
       simple:
         acknowledge-mode: manual
+  ai:
+    openai:
+      base-url: https://generativelanguage.googleapis.com/v1beta/openai
+      api-key: ${GEMINI_API_KEY:mock-api-key}
+      chat:
+        options:
+          model: gemini-3.6-flash
+      embedding:
+        options:
+          model: gemini-embedding-001
+          dimensions: 768
 
 jwt:
-  secret : ${SECRET_KEY:f513f80749396f4fbad6e62e4a40cf013b3cd86e4ffc88b7c39a075ac656f235}
-  expiration : ${EXPIRATION:3600000}
-  refresh-expiration : ${REFRESH_EXPIRATION:86400000}
+  secret: ${SECRET_KEY:f513f80749396f4fbad6e62e4a40cf013b3cd86e4ffc88b7c39a075ac656f235}
+  expiration: ${EXPIRATION:3600000}
+  refresh-expiration: ${REFRESH_EXPIRATION:86400000}
 
 openapi:
   service:
@@ -80,7 +91,6 @@ rabbitmq:
     dlq: email.dead
     retry: email.retry
 
-
 app:
   rate-limit:
     login:
@@ -88,17 +98,6 @@ app:
       duration: 1m
   lock:
     reservation-wait-time-seconds: 3
-  ai:
-    openai:
-      base-url: https://generativelanguage.googleapis.com/v1beta/openai
-      api-key: ${GEMINI_API_KEY:mock-api-key}
-      chat:
-        options:
-          model: gemini-3.6-flash
-      embedding:
-        options:
-          model: gemini-embedding-001
-          dimensions: 768
 
 stripe:
   api-key: ${STRIPE_API_KEY:sk_test_placeholder}
