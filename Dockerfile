@@ -1,32 +1,18 @@
-# ---- Stage 1: Build ----
-FROM maven:3.9.6-eclipse-temurin-21 AS builder
+# Bước 1: Dùng Maven và Java 21 để build mã nguồn thành file .jar
+FROM maven:3.9.9-eclipse-temurin-21 AS builder
 WORKDIR /app
+COPY . .
+RUN mvn clean package -DskipTests
 
-# Build profile parameter (defaults to 'dev', can be overridden via --build-arg MAVEN_PROFILE=prod)
-ARG MAVEN_PROFILE=dev
-
-# Copy only pom.xml first so dependency layer is cached
-# and only re-downloaded when pom.xml actually changes.
-COPY pom.xml .
-RUN mvn dependency:go-offline -B
-
-# Now copy source and build — using the flexible MAVEN_PROFILE build argument
-COPY src ./src
-RUN mvn clean package -P ${MAVEN_PROFILE} -DskipTests
-
-# ---- Stage 2: Runtime ----
+# Bước 2: Dùng môi trường Java 21 gọn nhẹ để chạy file .jar
 FROM eclipse-temurin:21-jre-alpine
-
-# Run as non-root user for security
-RUN addgroup -S spring && adduser -S spring -G spring
-
 WORKDIR /app
-COPY --from=builder /app/target/*.jar api-service.jar
 
-# Optional: install wget for the docker-compose healthcheck (Alpine doesn't ship it by default)
-RUN apk add --no-cache wget
+# Copy file .jar vừa build được ở Bước 1 sang
+COPY --from=builder /app/target/*.jar app.jar
 
-USER spring
+# Mở cổng 8080
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-Duser.timezone=UTC", "-jar", "api-service.jar"]
+# Lệnh khởi chạy ứng dụng
+ENTRYPOINT ["java", "-jar", "app.jar"]
