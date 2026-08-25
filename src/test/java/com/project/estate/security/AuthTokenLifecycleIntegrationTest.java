@@ -119,43 +119,71 @@ class AuthTokenLifecycleIntegrationTest {
   @Test
   @Order(4)
   @DisplayName(
-      "4. Reuse Attack Detection: Attempting to reuse old Refresh Token revokes all sessions")
-  void step4_reuseDetectionRevokesAllSessions() throws Exception {
-    // Kẻ gian cố tình gửi lại refreshCookie cũ đã bị rotate ở bước 3
+      "4a. Reuse Attack Detection: Attempting to reuse old Refresh Token returns 401 and revokes all sessions")
+  void step4a_reuseDetectionReturns401() throws Exception {
+    // Kẻ gian cố tình gửi lại refreshCookie cũ (đã xoay vòng ở step 3)
     mockMvc
         .perform(
             post("/v1/auth/refresh").cookie(refreshCookie).contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isUnauthorized());
+        .andExpect(status().isUnauthorized())
+        .andExpect(jsonPath("$.code").value(1109)); // REFRESH_TOKEN_REVOKED
   }
 
   @Test
   @Order(5)
-  @DisplayName("5. Logout: Blacklist Access Token in Redis and clear HttpOnly Cookie (Max-Age=0)")
-  void step5_logoutAndClearCookie() throws Exception {
-    MvcResult result =
-        mockMvc
-            .perform(
-                post("/v1/auth/logout")
-                    .header("Authorization", "Bearer " + rotatedAccessToken)
-                    .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andExpect(header().exists(HttpHeaders.SET_COOKIE))
-            .andReturn();
-
-    Cookie clearedCookie = result.getResponse().getCookie("estate_refresh_token");
-    assertNotNull(clearedCookie);
-    assertEquals(0, clearedCookie.getMaxAge());
+  @DisplayName(
+      "4b. Full Session Invalidation Proof: After reuse attack, even the active rotated token is revoked")
+  void step4b_activeRotatedTokenMustAlsoBeRevokedAfterReuse() throws Exception {
+    // Chứng minh: Sau khi vụ tấn công tái sử dụng ở step 4a bị phát hiện,
+    // toàn bộ session của user (kể cả rotatedRefreshCookie mới nhất) ĐÃ BỊ HỦY HOÀN TOÀN TRONG
+    // REDIS!
+    mockMvc
+        .perform(
+            post("/v1/auth/refresh")
+                .cookie(rotatedRefreshCookie)
+                .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isUnauthorized());
   }
 
   @Test
   @Order(6)
   @DisplayName(
-      "6. Blacklist Enforcement: Accessing Protected API with Logged-Out Token must return 401")
-  void step6_loggedOutTokenMustBeBlocked() throws Exception {
+      "5. Fresh Login & Logout: Blacklist Access Token in Redis and clear HttpOnly Cookie (Max-Age=0)")
+  void step5_freshLoginAndLogout() throws Exception {
+    // Đăng nhập lại phiên mới
+    LoginRequest loginRequest = new LoginRequest("admin", "admin");
+    MvcResult loginResult =
+        mockMvc
+            .perform(
+                post("/v1/auth/login")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(loginRequest)))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    JsonNode jsonNode = objectMapper.readTree(loginResult.getResponse().getContentAsString());
+    String freshAccessToken = jsonNode.path("result").path("accessToken").asText();
+
+    // Logout
+    MvcResult logoutResult =
+        mockMvc
+            .perform(
+                post("/v1/auth/logout")
+                    .header("Authorization", "Bearer " + freshAccessToken)
+                    .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(header().exists(HttpHeaders.SET_COOKIE))
+            .andReturn();
+
+    Cookie clearedCookie = logoutResult.getResponse().getCookie("estate_refresh_token");
+    assertNotNull(clearedCookie);
+    assertEquals(0, clearedCookie.getMaxAge());
+
+    // Thử dùng lại access token vừa logout -> Phải bị 401 do dính Blacklist
     mockMvc
         .perform(
             get("/v1/auth/me")
-                .header("Authorization", "Bearer " + rotatedAccessToken)
+                .header("Authorization", "Bearer " + freshAccessToken)
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isUnauthorized());
   }

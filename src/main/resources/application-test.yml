@@ -68,7 +68,10 @@ spring:
 jwt:
   secret: ${SECRET_KEY:f513f80749396f4fbad6e62e4a40cf013b3cd86e4ffc88b7c39a075ac656f235}
   expiration: ${EXPIRATION:3600000}
-  refresh-expiration: ${REFRESH_EXPIRATION:86400000}
+  refresh-expiration: ${REFRESH_EXPIRATION:604800000}
+  cookie-name: ${COOKIE_NAME:estate_refresh_token}
+  cookie-secure: ${COOKIE_SECURE:false}
+  cookie-same-site: ${COOKIE_SAME_SITE:Lax}
 
 openapi:
   service:
