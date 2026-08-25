@@ -11,24 +11,28 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 /**
- * Service quản lý Refresh Token hoàn toàn trên Redis In-Memory. Tận dụng cơ chế TTL tự động hủy
- * token hết hạn và hỗ trợ Refresh Token Rotation.
+ * Service quản lý Refresh Token trên Redis In-Memory theo chuẩn RFC 6819. Hỗ trợ Refresh Token
+ * Rotation và Reuse Detection (Chống dùng lại token bị đánh cắp).
  */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class RefreshTokenService {
 
-  @Value("${jwt.refresh-expiration}")
+  @Value("${jwt.refresh-expiration:86400000}")
   private Long refreshTokenExpiration;
 
   private final StringRedisTemplate redisTemplate;
 
   private static final String REFRESH_TOKEN_PREFIX = "refresh:token:";
   private static final String USER_REFRESH_PREFIX = "refresh:user:";
+  private static final String USED_TOKEN_PREFIX = "refresh:used:";
+
+  // Thời gian lưu vết token đã dùng để phát hiện tấn công tái sử dụng (Reuse Detection)
+  private static final Duration USED_TOKEN_GRACE_PERIOD = Duration.ofMinutes(10);
 
   /**
-   * Tạo Refresh Token mới và lưu vào Redis với TTL.
+   * Tạo Refresh Token mới cho người dùng.
    *
    * @param userId ID người dùng
    * @return chuỗi Refresh Token ngẫu nhiên (UUID)
@@ -39,7 +43,6 @@ public class RefreshTokenService {
     String token = UUID.randomUUID().toString();
     Duration ttl = Duration.ofMillis(refreshTokenExpiration);
 
-    // Lưu ánh xạ 2 chiều trong Redis
     redisTemplate.opsForValue().set(REFRESH_TOKEN_PREFIX + token, userId, ttl);
     redisTemplate.opsForValue().set(USER_REFRESH_PREFIX + userId, token, ttl);
 
@@ -48,6 +51,56 @@ public class RefreshTokenService {
         userId,
         refreshTokenExpiration);
     return token;
+  }
+
+  /**
+   * Xoay vòng Refresh Token (Token Rotation) kèm Phát hiện Tái sử dụng (Reuse Detection).
+   *
+   * @param oldToken token cũ cần đổi
+   * @return token mới vừa được cấp
+   */
+  public String rotate(String oldToken) {
+    if (oldToken == null || oldToken.isBlank()) {
+      throw new AppException(ErrorCode.INVALID_REFRESH_TOKEN);
+    }
+
+    // 1. Kiểm tra xem Token này có từng bị dùng trước đó không (REUSE ATTACK DETECTION)
+    if (Boolean.TRUE.equals(redisTemplate.hasKey(USED_TOKEN_PREFIX + oldToken))) {
+      String compromisedUserId = redisTemplate.opsForValue().get(USED_TOKEN_PREFIX + oldToken);
+      if (compromisedUserId != null) {
+        // Hủy ngay toàn bộ các phiên đăng nhập của người dùng bị nghi lộ token
+        revokeAllRefreshTokensForUser(compromisedUserId);
+      }
+      log.error(
+          "[SECURITY_ALERT] Refresh token reuse detected! Token was already consumed: {}. Revoked all sessions for userId={}",
+          oldToken,
+          compromisedUserId);
+      throw new AppException(ErrorCode.REFRESH_TOKEN_REVOKED);
+    }
+
+    // 2. Lấy userId từ token đang active
+    String userId = redisTemplate.opsForValue().get(REFRESH_TOKEN_PREFIX + oldToken);
+    if (userId == null) {
+      log.warn("[REDIS_REFRESH_TOKEN] Refresh token expired or not found: {}", oldToken);
+      throw new AppException(ErrorCode.INVALID_REFRESH_TOKEN);
+    }
+
+    // 3. Đánh dấu token cũ vào danh sách đã sử dụng (Used list) để bắt quả tang nếu có kẻ gian dùng
+    // lại
+    redisTemplate.opsForValue().set(USED_TOKEN_PREFIX + oldToken, userId, USED_TOKEN_GRACE_PERIOD);
+    redisTemplate.delete(REFRESH_TOKEN_PREFIX + oldToken);
+
+    // 4. Cấp token mới
+    String newToken = UUID.randomUUID().toString();
+    Duration ttl = Duration.ofMillis(refreshTokenExpiration);
+
+    redisTemplate.opsForValue().set(REFRESH_TOKEN_PREFIX + newToken, userId, ttl);
+    redisTemplate.opsForValue().set(USER_REFRESH_PREFIX + userId, newToken, ttl);
+
+    log.info(
+        "[REDIS_REFRESH_TOKEN] Rotated refresh token for userId={}. Old token marked as used.",
+        userId);
+    return newToken;
   }
 
   /**
@@ -63,18 +116,6 @@ public class RefreshTokenService {
       throw new AppException(ErrorCode.INVALID_REFRESH_TOKEN);
     }
     return userId;
-  }
-
-  /**
-   * Xoay vòng Refresh Token (Token Rotation): Hủy token cũ và cấp token mới.
-   *
-   * @param oldToken token cũ cần xoay vòng
-   * @return chuỗi Refresh Token mới
-   */
-  public String rotate(String oldToken) {
-    String userId = getUserIdByToken(oldToken);
-    revokeToken(oldToken);
-    return createRefreshToken(userId);
   }
 
   /**
@@ -102,6 +143,6 @@ public class RefreshTokenService {
       redisTemplate.delete(REFRESH_TOKEN_PREFIX + token);
     }
     redisTemplate.delete(USER_REFRESH_PREFIX + userId);
-    log.info("[REDIS_REFRESH_TOKEN] Revoked all refresh tokens for userId={}", userId);
+    log.info("[REDIS_REFRESH_TOKEN] Revoked all active refresh tokens for userId={}", userId);
   }
 }

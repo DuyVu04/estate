@@ -9,7 +9,12 @@ import com.project.estate.dto.response.UserResponse;
 import com.project.estate.service.AuthService;
 import com.project.estate.service.UserService;
 import jakarta.validation.Valid;
+import java.time.Duration;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -20,14 +25,47 @@ public class AuthController {
   private final AuthService authService;
   private final UserService userService;
 
+  @Value("${jwt.cookie-name:estate_refresh_token}")
+  private String cookieName;
+
+  @Value("${jwt.cookie-secure:false}")
+  private boolean cookieSecure;
+
+  @Value("${jwt.cookie-same-site:Lax}")
+  private String cookieSameSite;
+
+  @Value("${jwt.refresh-expiration:86400000}")
+  private Long refreshTokenExpiration;
+
+  private static final String REFRESH_COOKIE_PATH = "/api/v1/auth/refresh";
+
   @GetMapping("/me")
   public ApiResponse<UserResponse> getMyInfo() {
     return ApiResponse.success(authService.getMyInfo());
   }
 
   @PostMapping("/login")
-  public ApiResponse<TokenResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
-    return ApiResponse.success(authService.login(loginRequest));
+  public ResponseEntity<ApiResponse<TokenResponse>> login(
+      @Valid @RequestBody LoginRequest loginRequest) {
+    TokenResponse tokenResponse = authService.login(loginRequest);
+
+    ResponseCookie refreshCookie =
+        ResponseCookie.from(cookieName, tokenResponse.refreshToken())
+            .httpOnly(true)
+            .secure(cookieSecure)
+            .sameSite(cookieSameSite)
+            .path(REFRESH_COOKIE_PATH)
+            .maxAge(Duration.ofMillis(refreshTokenExpiration))
+            .build();
+
+    // Client nhận accessToken trong JSON Body để lưu vào RAM; refreshToken được bảo vệ trong
+    // HttpOnly Cookie
+    TokenResponse clientBody =
+        TokenResponse.builder().accessToken(tokenResponse.accessToken()).build();
+
+    return ResponseEntity.ok()
+        .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+        .body(ApiResponse.success(clientBody));
   }
 
   @PostMapping("/register")
@@ -36,14 +74,61 @@ public class AuthController {
   }
 
   @PostMapping("/refresh")
-  public ApiResponse<TokenResponse> refresh(@RequestBody RefreshTokenRequest request) {
-    return ApiResponse.success(authService.refreshToken(request));
+  public ResponseEntity<ApiResponse<TokenResponse>> refresh(
+      @CookieValue(name = "${jwt.cookie-name:estate_refresh_token}", required = false)
+          String cookieRefreshToken,
+      @RequestBody(required = false) RefreshTokenRequest requestBody) {
+
+    // Ưu tiên đọc từ HttpOnly Cookie (chuẩn Web), hỗ trợ fallback qua JSON Body (Mobile/Postman)
+    String tokenToRefresh =
+        (cookieRefreshToken != null && !cookieRefreshToken.isBlank())
+            ? cookieRefreshToken
+            : (requestBody != null ? requestBody.refreshToken() : null);
+
+    TokenResponse tokenResponse = authService.refreshToken(tokenToRefresh);
+
+    ResponseCookie newRefreshCookie =
+        ResponseCookie.from(cookieName, tokenResponse.refreshToken())
+            .httpOnly(true)
+            .secure(cookieSecure)
+            .sameSite(cookieSameSite)
+            .path(REFRESH_COOKIE_PATH)
+            .maxAge(Duration.ofMillis(refreshTokenExpiration))
+            .build();
+
+    TokenResponse clientBody =
+        TokenResponse.builder().accessToken(tokenResponse.accessToken()).build();
+
+    return ResponseEntity.ok()
+        .header(HttpHeaders.SET_COOKIE, newRefreshCookie.toString())
+        .body(ApiResponse.success(clientBody));
+  }
+
+  @PostMapping("/logout")
+  public ResponseEntity<ApiResponse<Void>> logout(
+      @RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
+    if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+      authService.logout(authorizationHeader);
+    }
+
+    ResponseCookie cleanCookie =
+        ResponseCookie.from(cookieName, "")
+            .httpOnly(true)
+            .secure(cookieSecure)
+            .sameSite(cookieSameSite)
+            .path(REFRESH_COOKIE_PATH)
+            .maxAge(0)
+            .build();
+
+    return ResponseEntity.ok()
+        .header(HttpHeaders.SET_COOKIE, cleanCookie.toString())
+        .body(ApiResponse.success());
   }
 
   @DeleteMapping("/logout")
-  public ApiResponse<Void> logout(@RequestHeader("Authorization") String authorizationHeader) {
-    authService.logout(authorizationHeader);
-    return ApiResponse.success();
+  public ResponseEntity<ApiResponse<Void>> logoutDelete(
+      @RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
+    return logout(authorizationHeader);
   }
 
   @GetMapping("/verify")

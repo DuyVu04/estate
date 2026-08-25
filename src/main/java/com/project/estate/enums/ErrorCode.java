@@ -32,12 +32,14 @@ public enum ErrorCode {
 
   TOKEN_EXPIRED(1107, "Token expired", HttpStatus.BAD_REQUEST),
 
-  INVALID_REFRESH_TOKEN(1108, "Invalid refresh token", HttpStatus.BAD_REQUEST),
+  INVALID_REFRESH_TOKEN(1108, "Invalid refresh token", HttpStatus.UNAUTHORIZED),
 
-  REFRESH_TOKEN_REVOKED(1109, "Refresh token is revoked", HttpStatus.BAD_REQUEST),
+  REFRESH_TOKEN_REVOKED(
+      1109,
+      "Refresh token is revoked or reused. All sessions terminated.",
+      HttpStatus.UNAUTHORIZED),
 
-  REFRESH_TOKEN_EXPIRED(
-      1110, "Refresh token was expired. Please make a new sign in request", HttpStatus.BAD_REQUEST),
+  REFRESH_TOKEN_EXPIRED(1110, "Refresh token expired", HttpStatus.UNAUTHORIZED),
 
   EMAIL_SENDING_FAILED(1111, "Failed to send email", HttpStatus.INTERNAL_SERVER_ERROR),
 

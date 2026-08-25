@@ -1,7 +1,6 @@
 package com.project.estate.service;
 
 import com.project.estate.dto.request.LoginRequest;
-import com.project.estate.dto.request.RefreshTokenRequest;
 import com.project.estate.dto.response.TokenResponse;
 import com.project.estate.dto.response.UserResponse;
 import com.project.estate.entity.User;
@@ -83,14 +82,17 @@ public class AuthService {
     }
   }
 
-  public TokenResponse refreshToken(RefreshTokenRequest request) {
-    String userId = refreshTokenService.getUserIdByToken(request.refreshToken());
+  public TokenResponse refreshToken(String refreshToken) {
+    if (refreshToken == null || refreshToken.isBlank()) {
+      throw new AppException(ErrorCode.INVALID_REFRESH_TOKEN);
+    }
+    String newRefreshToken = refreshTokenService.rotate(refreshToken);
+    String userId = refreshTokenService.getUserIdByToken(newRefreshToken);
     User user =
         userRepository
             .findById(userId)
             .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-    String newRefreshToken = refreshTokenService.rotate(request.refreshToken());
     String newAccessToken = jwtService.generateToken(new UserPrincipal(user));
 
     return TokenResponse.builder()
