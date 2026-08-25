@@ -4,7 +4,6 @@ import com.project.estate.dto.request.LoginRequest;
 import com.project.estate.dto.request.RefreshTokenRequest;
 import com.project.estate.dto.response.TokenResponse;
 import com.project.estate.dto.response.UserResponse;
-import com.project.estate.entity.RefreshToken;
 import com.project.estate.entity.User;
 import com.project.estate.enums.ErrorCode;
 import com.project.estate.enums.UserStatus;
@@ -16,6 +15,7 @@ import com.project.estate.repository.UserRepository;
 import com.project.estate.security.UserPrincipal;
 import com.project.estate.security.jwt.JwtService;
 import com.project.estate.security.service.RefreshTokenService;
+import com.project.estate.service.redis.TokenBlacklistService;
 import com.project.estate.service.redis.VerificationTokenService;
 import jakarta.transaction.Transactional;
 import java.util.UUID;
@@ -38,6 +38,8 @@ public class AuthService {
   private final JwtService jwtService;
 
   private final RefreshTokenService refreshTokenService;
+
+  private final TokenBlacklistService tokenBlacklistService;
 
   private final UserRepository userRepository;
 
@@ -72,12 +74,9 @@ public class AuthService {
 
       String accessToken = jwtService.generateToken(user);
 
-      RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getUser().getId());
+      String refreshToken = refreshTokenService.createRefreshToken(user.getUser().getId());
 
-      return TokenResponse.builder()
-          .accessToken(accessToken)
-          .refreshToken(refreshToken.getToken())
-          .build();
+      return TokenResponse.builder().accessToken(accessToken).refreshToken(refreshToken).build();
     } catch (AuthenticationException ex) {
       log.warn("Login failed for user {}: {}", loginRequest.username(), ex.getMessage());
       throw new AppException(ErrorCode.INVALID_USERNAME_OR_PASSWORD);
@@ -85,30 +84,24 @@ public class AuthService {
   }
 
   public TokenResponse refreshToken(RefreshTokenRequest request) {
-    RefreshToken refreshTokenEntity =
-        refreshTokenService
-            .findByToken(request.refreshToken())
-            .orElseThrow(() -> new AppException(ErrorCode.INVALID_REFRESH_TOKEN));
+    String userId = refreshTokenService.getUserIdByToken(request.refreshToken());
+    User user =
+        userRepository
+            .findById(userId)
+            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-    if (refreshTokenEntity.isRevoked()) {
-      throw new AppException(ErrorCode.REFRESH_TOKEN_REVOKED);
-    }
-    refreshTokenService.verifyExpiration(refreshTokenEntity);
-    RefreshToken newRefresh = refreshTokenService.rotate(refreshTokenEntity);
-
-    User user = newRefresh.getUser();
-
+    String newRefreshToken = refreshTokenService.rotate(request.refreshToken());
     String newAccessToken = jwtService.generateToken(new UserPrincipal(user));
-    RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(user.getId());
 
     return TokenResponse.builder()
         .accessToken(newAccessToken)
-        .refreshToken(newRefreshToken.getToken())
+        .refreshToken(newRefreshToken)
         .build();
   }
 
   public void logout(String authorizationHeader) {
     String token = authorizationHeader.substring(7);
+    tokenBlacklistService.blacklistToken(token);
     String userName = jwtService.extractUsername(token);
     var user =
         userRepository

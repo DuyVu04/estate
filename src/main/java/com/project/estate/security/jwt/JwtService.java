@@ -56,6 +56,10 @@ public class JwtService {
     return extractClaims(token, Claims::getSubject);
   }
 
+  public Date extractExpiration(String token) {
+    return extractClaims(token, Claims::getExpiration);
+  }
+
   @SuppressWarnings("unchecked")
   public List<String> extractRoles(String token) {
     return extractClaims(token, claims -> claims.get("roles", List.class));
