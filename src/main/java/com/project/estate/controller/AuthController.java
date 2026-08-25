@@ -34,10 +34,12 @@ public class AuthController {
   @Value("${jwt.cookie-same-site:Lax}")
   private String cookieSameSite;
 
-  @Value("${jwt.refresh-expiration:86400000}")
+  @Value("${jwt.refresh-expiration:604800000}")
   private Long refreshTokenExpiration;
 
   private static final String REFRESH_COOKIE_PATH = "/api/v1/auth/refresh";
+  private static final String SESSION_HINT_COOKIE_NAME = "estate_session_hint";
+  private static final String SESSION_HINT_PATH = "/";
 
   @GetMapping("/me")
   public ApiResponse<UserResponse> getMyInfo() {
@@ -58,6 +60,15 @@ public class AuthController {
             .maxAge(Duration.ofMillis(refreshTokenExpiration))
             .build();
 
+    ResponseCookie sessionHintCookie =
+        ResponseCookie.from(SESSION_HINT_COOKIE_NAME, "1")
+            .httpOnly(false)
+            .secure(cookieSecure)
+            .sameSite(cookieSameSite)
+            .path(SESSION_HINT_PATH)
+            .maxAge(Duration.ofMillis(refreshTokenExpiration))
+            .build();
+
     // Client nhận accessToken trong JSON Body để lưu vào RAM; refreshToken được bảo vệ trong
     // HttpOnly Cookie
     TokenResponse clientBody =
@@ -65,6 +76,7 @@ public class AuthController {
 
     return ResponseEntity.ok()
         .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+        .header(HttpHeaders.SET_COOKIE, sessionHintCookie.toString())
         .body(ApiResponse.success(clientBody));
   }
 
@@ -96,11 +108,21 @@ public class AuthController {
             .maxAge(Duration.ofMillis(refreshTokenExpiration))
             .build();
 
+    ResponseCookie sessionHintCookie =
+        ResponseCookie.from(SESSION_HINT_COOKIE_NAME, "1")
+            .httpOnly(false)
+            .secure(cookieSecure)
+            .sameSite(cookieSameSite)
+            .path(SESSION_HINT_PATH)
+            .maxAge(Duration.ofMillis(refreshTokenExpiration))
+            .build();
+
     TokenResponse clientBody =
         TokenResponse.builder().accessToken(tokenResponse.accessToken()).build();
 
     return ResponseEntity.ok()
         .header(HttpHeaders.SET_COOKIE, newRefreshCookie.toString())
+        .header(HttpHeaders.SET_COOKIE, sessionHintCookie.toString())
         .body(ApiResponse.success(clientBody));
   }
 
@@ -111,7 +133,7 @@ public class AuthController {
       authService.logout(authorizationHeader);
     }
 
-    ResponseCookie cleanCookie =
+    ResponseCookie cleanRefreshCookie =
         ResponseCookie.from(cookieName, "")
             .httpOnly(true)
             .secure(cookieSecure)
@@ -120,8 +142,18 @@ public class AuthController {
             .maxAge(0)
             .build();
 
+    ResponseCookie cleanSessionHintCookie =
+        ResponseCookie.from(SESSION_HINT_COOKIE_NAME, "")
+            .httpOnly(false)
+            .secure(cookieSecure)
+            .sameSite(cookieSameSite)
+            .path(SESSION_HINT_PATH)
+            .maxAge(0)
+            .build();
+
     return ResponseEntity.ok()
-        .header(HttpHeaders.SET_COOKIE, cleanCookie.toString())
+        .header(HttpHeaders.SET_COOKIE, cleanRefreshCookie.toString())
+        .header(HttpHeaders.SET_COOKIE, cleanSessionHintCookie.toString())
         .body(ApiResponse.success());
   }
 

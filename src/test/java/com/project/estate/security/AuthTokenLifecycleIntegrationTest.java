@@ -40,6 +40,7 @@ class AuthTokenLifecycleIntegrationTest {
 
   private static String accessToken;
   private static Cookie refreshCookie;
+  private static Cookie sessionHintCookie;
   private static String rotatedAccessToken;
   private static Cookie rotatedRefreshCookie;
 
@@ -54,8 +55,8 @@ class AuthTokenLifecycleIntegrationTest {
   @Test
   @Order(1)
   @DisplayName(
-      "1. Login Success: AccessToken in JSON Body and HttpOnly estate_refresh_token Cookie")
-  void step1_loginSuccessWithHttpOnlyCookie() throws Exception {
+      "1. Login Success: AccessToken in JSON Body, estate_refresh_token (Path=/api/v1/auth/refresh) and estate_session_hint (Path=/) Cookies")
+  void step1_loginSuccessWithCookies() throws Exception {
     LoginRequest loginRequest = new LoginRequest("admin", "admin");
 
     MvcResult result =
@@ -72,11 +73,20 @@ class AuthTokenLifecycleIntegrationTest {
     JsonNode jsonNode = objectMapper.readTree(result.getResponse().getContentAsString());
     accessToken = jsonNode.path("result").path("accessToken").asText();
     refreshCookie = result.getResponse().getCookie("estate_refresh_token");
+    sessionHintCookie = result.getResponse().getCookie("estate_session_hint");
 
     assertNotNull(accessToken);
     assertNotNull(refreshCookie);
+    assertNotNull(sessionHintCookie);
+
+    // Refresh token: HttpOnly=true, Path=/api/v1/auth/refresh
     assertTrue(refreshCookie.isHttpOnly());
     assertEquals("/api/v1/auth/refresh", refreshCookie.getPath());
+
+    // Session hint token: HttpOnly=false, Path=/, Value="1"
+    assertFalse(sessionHintCookie.isHttpOnly());
+    assertEquals("/", sessionHintCookie.getPath());
+    assertEquals("1", sessionHintCookie.getValue());
   }
 
   @Test
@@ -94,7 +104,8 @@ class AuthTokenLifecycleIntegrationTest {
 
   @Test
   @Order(3)
-  @DisplayName("3. Token Rotation: Refresh Token via Cookie generates new token pair")
+  @DisplayName(
+      "3. Token Rotation: Refresh Token via Cookie generates new token pair and session hint")
   void step3_refreshTokenRotationViaCookie() throws Exception {
     MvcResult result =
         mockMvc
@@ -110,10 +121,14 @@ class AuthTokenLifecycleIntegrationTest {
     JsonNode jsonNode = objectMapper.readTree(result.getResponse().getContentAsString());
     rotatedAccessToken = jsonNode.path("result").path("accessToken").asText();
     rotatedRefreshCookie = result.getResponse().getCookie("estate_refresh_token");
+    Cookie rotatedHintCookie = result.getResponse().getCookie("estate_session_hint");
 
     assertNotNull(rotatedAccessToken);
     assertNotNull(rotatedRefreshCookie);
+    assertNotNull(rotatedHintCookie);
     assertNotEquals(refreshCookie.getValue(), rotatedRefreshCookie.getValue());
+    assertEquals("/", rotatedHintCookie.getPath());
+    assertEquals("1", rotatedHintCookie.getValue());
   }
 
   @Test
@@ -148,7 +163,7 @@ class AuthTokenLifecycleIntegrationTest {
   @Test
   @Order(6)
   @DisplayName(
-      "5. Fresh Login & Logout: Blacklist Access Token in Redis and clear HttpOnly Cookie (Max-Age=0)")
+      "5. Fresh Login & Logout: Blacklist Access Token in Redis and clear both Cookies (Max-Age=0)")
   void step5_freshLoginAndLogout() throws Exception {
     // Đăng nhập lại phiên mới
     LoginRequest loginRequest = new LoginRequest("admin", "admin");
@@ -175,9 +190,14 @@ class AuthTokenLifecycleIntegrationTest {
             .andExpect(header().exists(HttpHeaders.SET_COOKIE))
             .andReturn();
 
-    Cookie clearedCookie = logoutResult.getResponse().getCookie("estate_refresh_token");
-    assertNotNull(clearedCookie);
-    assertEquals(0, clearedCookie.getMaxAge());
+    Cookie clearedRefreshCookie = logoutResult.getResponse().getCookie("estate_refresh_token");
+    Cookie clearedHintCookie = logoutResult.getResponse().getCookie("estate_session_hint");
+
+    assertNotNull(clearedRefreshCookie);
+    assertNotNull(clearedHintCookie);
+    assertEquals(0, clearedRefreshCookie.getMaxAge());
+    assertEquals(0, clearedHintCookie.getMaxAge());
+    assertEquals("/", clearedHintCookie.getPath());
 
     // Thử dùng lại access token vừa logout -> Phải bị 401 do dính Blacklist
     mockMvc
