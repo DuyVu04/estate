@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import java.math.BigDecimal;
+import java.util.List;
 import lombok.Builder;
 
 @Builder
@@ -19,4 +20,5 @@ public record PropertyUpdateRequest(
     @NotNull(message = "Area is required") @Positive(message = "Area must be greater than 0")
         BigDecimal area,
     @NotNull(message = "Price is required") @Positive(message = "Price must be greater than 0")
-        BigDecimal price) {}
+        BigDecimal price,
+    List<String> imageUrls) {}

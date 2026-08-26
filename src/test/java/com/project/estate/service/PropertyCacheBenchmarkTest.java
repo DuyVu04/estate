@@ -126,16 +126,17 @@ class PropertyCacheBenchmarkTest {
     // =========================================================================
     when(propertyRepository.save(any())).thenReturn(mockProperty);
     PropertyUpdateRequest updateReq =
-        new PropertyUpdateRequest(
-            "Villa Riviera Updated",
-            "New Desc",
-            PropertyType.VILLA,
-            "123 Nguyen Van Huong",
-            "Thao Dien",
-            "District 2",
-            "HCMC",
-            BigDecimal.valueOf(500),
-            BigDecimal.valueOf(16000000000L));
+        PropertyUpdateRequest.builder()
+            .title("Villa Riviera Updated")
+            .description("New Desc")
+            .propertyType(PropertyType.VILLA)
+            .address("123 Nguyen Van Huong")
+            .ward("Thao Dien")
+            .district("District 2")
+            .city("HCMC")
+            .area(BigDecimal.valueOf(500))
+            .price(BigDecimal.valueOf(16000000000L))
+            .build();
 
     propertyService.updateProperty(propertyId, updateReq);
 

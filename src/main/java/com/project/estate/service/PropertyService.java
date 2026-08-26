@@ -4,6 +4,7 @@ import com.project.estate.dto.request.PropertyCreateRequest;
 import com.project.estate.dto.request.PropertyUpdateRequest;
 import com.project.estate.dto.response.PropertyResponse;
 import com.project.estate.entity.Property;
+import com.project.estate.entity.PropertyImage;
 import com.project.estate.enums.ErrorCode;
 import com.project.estate.enums.PropertyStatus;
 import com.project.estate.exception.AppException;
@@ -29,12 +30,20 @@ public class PropertyService {
   private final PropertyMapper propertyMapper;
   private final PropertyVectorProducer propertyVectorProducer;
 
-  /** Create a new property Sets default status to AVAILABLE */
+  /** Create a new property Sets default status to AVAILABLE and persists images */
   @Transactional
   public PropertyResponse createProperty(PropertyCreateRequest request) {
-
     Property property = propertyMapper.toProperty(request);
     property.setStatus(PropertyStatus.AVAILABLE);
+
+    if (request.imageUrls() != null && !request.imageUrls().isEmpty()) {
+      for (int i = 0; i < request.imageUrls().size(); i++) {
+        String url = request.imageUrls().get(i);
+        if (url != null && !url.isBlank()) {
+          property.addImage(PropertyImage.builder().url(url).sortOrder(i).build());
+        }
+      }
+    }
 
     propertyRepository.save(property);
     propertyVectorProducer.publishPropertyEmbeddingTask(property.getId());
@@ -55,7 +64,7 @@ public class PropertyService {
     return propertyMapper.toPropertyResponse(property);
   }
 
-  /** Update property - Evict Redis Cache on modification */
+  /** Update property - Evict Redis Cache on modification and sync images */
   @CacheEvict(value = "property_detail", key = "#id")
   @Transactional
   public PropertyResponse updateProperty(String id, PropertyUpdateRequest request) {
@@ -67,6 +76,16 @@ public class PropertyService {
             .orElseThrow(() -> new AppException(ErrorCode.PROPERTY_NOT_FOUND));
 
     propertyMapper.updateProperty(request, property);
+
+    if (request.imageUrls() != null) {
+      property.getImages().clear();
+      for (int i = 0; i < request.imageUrls().size(); i++) {
+        String url = request.imageUrls().get(i);
+        if (url != null && !url.isBlank()) {
+          property.addImage(PropertyImage.builder().url(url).sortOrder(i).build());
+        }
+      }
+    }
 
     Property updatedProperty = propertyRepository.save(property);
     propertyVectorProducer.publishPropertyEmbeddingTask(updatedProperty.getId());
