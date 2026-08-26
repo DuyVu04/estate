@@ -10,6 +10,7 @@ import com.project.estate.mapper.ReservationMapper;
 import com.project.estate.repository.ReservationRepository;
 import com.project.estate.repository.WorkflowHistoryRepository;
 import com.project.estate.repository.WorkflowInstanceRepository;
+import com.project.estate.security.UserPrincipal;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -108,6 +111,22 @@ public class ReservationService {
     }
 
     return baseResponse.toBuilder().histories(histories).build();
+  }
+
+  public Page<ReservationResponse> getMyReservations(Pageable pageable) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication == null
+        || !(authentication.getPrincipal() instanceof UserPrincipal principal)) {
+      throw new AppException(ErrorCode.UNAUTHENTICATED);
+    }
+    String currentUserId = principal.getUser().getId();
+    return reservationRepository
+        .findByUserId(currentUserId, pageable)
+        .map(reservationMapper::toResponse);
+  }
+
+  public Page<ReservationResponse> getReservationsByUserId(String userId, Pageable pageable) {
+    return reservationRepository.findByUserId(userId, pageable).map(reservationMapper::toResponse);
   }
 
   @PreAuthorize("hasRole('ROLE_ADMIN')")
