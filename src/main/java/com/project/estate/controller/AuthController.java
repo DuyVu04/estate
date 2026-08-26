@@ -6,14 +6,13 @@ import com.project.estate.dto.request.RefreshTokenRequest;
 import com.project.estate.dto.request.UserRequest;
 import com.project.estate.dto.response.TokenResponse;
 import com.project.estate.dto.response.UserResponse;
+import com.project.estate.security.AuthCookieFactory;
 import com.project.estate.service.AuthService;
 import com.project.estate.service.UserService;
 import jakarta.validation.Valid;
-import java.time.Duration;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,22 +23,7 @@ public class AuthController {
 
   private final AuthService authService;
   private final UserService userService;
-
-  @Value("${jwt.cookie-name:estate_refresh_token}")
-  private String cookieName;
-
-  @Value("${jwt.cookie-secure:false}")
-  private boolean cookieSecure;
-
-  @Value("${jwt.cookie-same-site:Lax}")
-  private String cookieSameSite;
-
-  @Value("${jwt.refresh-expiration:604800000}")
-  private Long refreshTokenExpiration;
-
-  private static final String REFRESH_COOKIE_PATH = "/api/v1/auth/refresh";
-  private static final String SESSION_HINT_COOKIE_NAME = "estate_session_hint";
-  private static final String SESSION_HINT_PATH = "/";
+  private final AuthCookieFactory cookieFactory;
 
   @GetMapping("/me")
   public ApiResponse<UserResponse> getMyInfo() {
@@ -50,34 +34,9 @@ public class AuthController {
   public ResponseEntity<ApiResponse<TokenResponse>> login(
       @Valid @RequestBody LoginRequest loginRequest) {
     TokenResponse tokenResponse = authService.login(loginRequest);
-
-    ResponseCookie refreshCookie =
-        ResponseCookie.from(cookieName, tokenResponse.refreshToken())
-            .httpOnly(true)
-            .secure(cookieSecure)
-            .sameSite(cookieSameSite)
-            .path(REFRESH_COOKIE_PATH)
-            .maxAge(Duration.ofMillis(refreshTokenExpiration))
-            .build();
-
-    ResponseCookie sessionHintCookie =
-        ResponseCookie.from(SESSION_HINT_COOKIE_NAME, "1")
-            .httpOnly(false)
-            .secure(cookieSecure)
-            .sameSite(cookieSameSite)
-            .path(SESSION_HINT_PATH)
-            .maxAge(Duration.ofMillis(refreshTokenExpiration))
-            .build();
-
-    // Client nhận accessToken trong JSON Body để lưu vào RAM; refreshToken được bảo vệ trong
-    // HttpOnly Cookie
-    TokenResponse clientBody =
-        TokenResponse.builder().accessToken(tokenResponse.accessToken()).build();
-
-    return ResponseEntity.ok()
-        .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
-        .header(HttpHeaders.SET_COOKIE, sessionHintCookie.toString())
-        .body(ApiResponse.success(clientBody));
+    return withCookies(
+        cookieFactory.buildAuthCookies(tokenResponse.refreshToken()),
+        ApiResponse.success(accessTokenOnly(tokenResponse)));
   }
 
   @PostMapping("/register")
@@ -98,32 +57,9 @@ public class AuthController {
             : (requestBody != null ? requestBody.refreshToken() : null);
 
     TokenResponse tokenResponse = authService.refreshToken(tokenToRefresh);
-
-    ResponseCookie newRefreshCookie =
-        ResponseCookie.from(cookieName, tokenResponse.refreshToken())
-            .httpOnly(true)
-            .secure(cookieSecure)
-            .sameSite(cookieSameSite)
-            .path(REFRESH_COOKIE_PATH)
-            .maxAge(Duration.ofMillis(refreshTokenExpiration))
-            .build();
-
-    ResponseCookie sessionHintCookie =
-        ResponseCookie.from(SESSION_HINT_COOKIE_NAME, "1")
-            .httpOnly(false)
-            .secure(cookieSecure)
-            .sameSite(cookieSameSite)
-            .path(SESSION_HINT_PATH)
-            .maxAge(Duration.ofMillis(refreshTokenExpiration))
-            .build();
-
-    TokenResponse clientBody =
-        TokenResponse.builder().accessToken(tokenResponse.accessToken()).build();
-
-    return ResponseEntity.ok()
-        .header(HttpHeaders.SET_COOKIE, newRefreshCookie.toString())
-        .header(HttpHeaders.SET_COOKIE, sessionHintCookie.toString())
-        .body(ApiResponse.success(clientBody));
+    return withCookies(
+        cookieFactory.buildAuthCookies(tokenResponse.refreshToken()),
+        ApiResponse.success(accessTokenOnly(tokenResponse)));
   }
 
   @PostMapping("/logout")
@@ -132,29 +68,7 @@ public class AuthController {
     if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
       authService.logout(authorizationHeader);
     }
-
-    ResponseCookie cleanRefreshCookie =
-        ResponseCookie.from(cookieName, "")
-            .httpOnly(true)
-            .secure(cookieSecure)
-            .sameSite(cookieSameSite)
-            .path(REFRESH_COOKIE_PATH)
-            .maxAge(0)
-            .build();
-
-    ResponseCookie cleanSessionHintCookie =
-        ResponseCookie.from(SESSION_HINT_COOKIE_NAME, "")
-            .httpOnly(false)
-            .secure(cookieSecure)
-            .sameSite(cookieSameSite)
-            .path(SESSION_HINT_PATH)
-            .maxAge(0)
-            .build();
-
-    return ResponseEntity.ok()
-        .header(HttpHeaders.SET_COOKIE, cleanRefreshCookie.toString())
-        .header(HttpHeaders.SET_COOKIE, cleanSessionHintCookie.toString())
-        .body(ApiResponse.success());
+    return withCookies(cookieFactory.buildClearCookies(), ApiResponse.success());
   }
 
   @DeleteMapping("/logout")
@@ -167,5 +81,20 @@ public class AuthController {
   public ApiResponse<Void> confirmEmail(@RequestParam String token) {
     authService.confirmEmail(token);
     return ApiResponse.success();
+  }
+
+  // ---- helpers ----
+
+  /** Client chỉ nhận accessToken trong Body; refreshToken luôn nằm trong HttpOnly Cookie. */
+  private TokenResponse accessTokenOnly(TokenResponse tokenResponse) {
+    return TokenResponse.builder().accessToken(tokenResponse.accessToken()).build();
+  }
+
+  /** Gắn N dòng Set-Cookie (mỗi cookie 1 dòng riêng) vào response, kèm body bất kỳ. */
+  private <T> ResponseEntity<ApiResponse<T>> withCookies(
+      List<String> cookies, ApiResponse<T> body) {
+    HttpHeaders headers = new HttpHeaders();
+    cookies.forEach(cookie -> headers.add(HttpHeaders.SET_COOKIE, cookie));
+    return ResponseEntity.ok().headers(headers).body(body);
   }
 }
