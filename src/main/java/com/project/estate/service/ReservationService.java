@@ -12,10 +12,10 @@ import com.project.estate.repository.WorkflowHistoryRepository;
 import com.project.estate.repository.WorkflowInstanceRepository;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.data.domain.Page;
@@ -25,6 +25,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class ReservationService {
 
@@ -38,40 +39,6 @@ public class ReservationService {
 
   @Value("${app.lock.reservation-wait-time-seconds:3}")
   private long waitTimeSeconds = 3;
-
-  public ReservationService(
-      ReservationRepository reservationRepository,
-      ReservationMapper reservationMapper,
-      ReservationTransactionalHandler transactionalHandler,
-      RedissonClient redissonClient,
-      CacheManager cacheManager) {
-    this(
-        reservationRepository,
-        reservationMapper,
-        transactionalHandler,
-        redissonClient,
-        cacheManager,
-        null,
-        null);
-  }
-
-  @Autowired
-  public ReservationService(
-      ReservationRepository reservationRepository,
-      ReservationMapper reservationMapper,
-      ReservationTransactionalHandler transactionalHandler,
-      RedissonClient redissonClient,
-      CacheManager cacheManager,
-      @Autowired(required = false) WorkflowInstanceRepository workflowInstanceRepository,
-      @Autowired(required = false) WorkflowHistoryRepository workflowHistoryRepository) {
-    this.reservationRepository = reservationRepository;
-    this.reservationMapper = reservationMapper;
-    this.transactionalHandler = transactionalHandler;
-    this.redissonClient = redissonClient;
-    this.cacheManager = cacheManager;
-    this.workflowInstanceRepository = workflowInstanceRepository;
-    this.workflowHistoryRepository = workflowHistoryRepository;
-  }
 
   public ReservationResponse reserve(ReservationRequest reservationRequest) {
     String lockKey = "lock:property:" + reservationRequest.propertyId();

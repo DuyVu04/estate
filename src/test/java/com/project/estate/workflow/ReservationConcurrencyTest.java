@@ -106,7 +106,13 @@ class ReservationConcurrencyTest {
 
     proxiedReservationService =
         new ReservationService(
-            reservationRepository, reservationMapper, proxiedHandler, redissonClient, cacheManager);
+            reservationRepository,
+            reservationMapper,
+            proxiedHandler,
+            redissonClient,
+            cacheManager,
+            instanceRepository,
+            historyRepository);
   }
 
   @Test

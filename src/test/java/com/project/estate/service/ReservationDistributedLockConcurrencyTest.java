@@ -39,6 +39,8 @@ class ReservationDistributedLockConcurrencyTest {
   @Mock private RLock rLock;
   @Mock private CacheManager cacheManager;
   @Mock private Cache cache;
+  @Mock private com.project.estate.repository.WorkflowInstanceRepository workflowInstanceRepository;
+  @Mock private com.project.estate.repository.WorkflowHistoryRepository workflowHistoryRepository;
 
   private ReservationService reservationService;
 
@@ -52,7 +54,9 @@ class ReservationDistributedLockConcurrencyTest {
             reservationMapper,
             transactionalHandler,
             redissonClient,
-            cacheManager);
+            cacheManager,
+            workflowInstanceRepository,
+            workflowHistoryRepository);
   }
 
   @Test
