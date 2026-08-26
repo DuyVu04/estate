@@ -33,8 +33,17 @@ public abstract class PropertyMapper {
   public abstract void updateProperty(
       PropertyUpdateRequest request, @MappingTarget Property property);
 
+  @Mapping(target = "thumbnailUrl", expression = "java(mapThumbnailUrl(property))")
   @Mapping(target = "imageUrls", expression = "java(mapImagesToUrls(property))")
   public abstract PropertyResponse toPropertyResponse(Property property);
+
+  protected String mapThumbnailUrl(Property property) {
+    if (property == null || property.getImages() == null || property.getImages().isEmpty()) {
+      return null;
+    }
+    String firstUrl = property.getImages().get(0).getUrl();
+    return minioService != null ? minioService.buildFullUrl(firstUrl) : firstUrl;
+  }
 
   protected List<String> mapImagesToUrls(Property property) {
     if (property == null || property.getImages() == null) {

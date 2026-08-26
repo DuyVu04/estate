@@ -20,6 +20,7 @@ public record PropertyResponse(
     BigDecimal area,
     BigDecimal price,
     PropertyStatus status,
+    String thumbnailUrl,
     List<String> imageUrls,
     LocalDateTime createdAt,
     LocalDateTime updatedAt) {}
