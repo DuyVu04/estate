@@ -3,6 +3,7 @@ package com.project.estate.service;
 import com.project.estate.dto.response.FileUploadResponse;
 import io.minio.*;
 import io.minio.http.Method;
+import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -28,6 +29,15 @@ public class MinioService {
   private int presignedUrlExpiration;
 
   private final MinioClient minioClient;
+
+  @PostConstruct
+  public void init() {
+    try {
+      createBucketIfNotExists();
+    } catch (Exception e) {
+      log.warn("MinIO bucket initialization deferred: {}", e.getMessage());
+    }
+  }
 
   public FileUploadResponse putObject(MultipartFile file) throws Exception {
     createBucketIfNotExists();
@@ -100,9 +110,7 @@ public class MinioService {
     if (keyOrUrl.startsWith(prefix)) {
       return keyOrUrl.substring(prefix.length());
     }
-    int slashIdx = keyOrUrl.lastIndexOf('/');
     if (keyOrUrl.startsWith("http://") || keyOrUrl.startsWith("https://")) {
-      // If it points to our bucket or generic s3
       if (keyOrUrl.contains("/" + bucketName + "/")) {
         return keyOrUrl.substring(
             keyOrUrl.indexOf("/" + bucketName + "/") + bucketName.length() + 2);
@@ -138,8 +146,8 @@ public class MinioService {
     if (!found) {
       minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
       log.info("Created MinIO bucket: {}", bucketName);
-      setBucketPublicReadPolicy();
     }
+    setBucketPublicReadPolicy();
   }
 
   private void setBucketPublicReadPolicy() {
@@ -152,13 +160,19 @@ public class MinioService {
                   {
                       "Effect": "Allow",
                       "Principal": {"AWS": ["*"]},
+                      "Action": ["s3:GetBucketLocation", "s3:ListBucket"],
+                      "Resource": ["arn:aws:s3:::%s"]
+                  },
+                  {
+                      "Effect": "Allow",
+                      "Principal": {"AWS": ["*"]},
                       "Action": ["s3:GetObject"],
                       "Resource": ["arn:aws:s3:::%s/*"]
                   }
               ]
           }
           """
-              .formatted(bucketName);
+              .formatted(bucketName, bucketName);
       minioClient.setBucketPolicy(
           SetBucketPolicyArgs.builder().bucket(bucketName).config(policy).build());
       log.info("Configured Public Read Policy for MinIO bucket: {}", bucketName);
