@@ -27,5 +27,9 @@ public interface PropertyMapper {
   @Mapping(target = "images", ignore = true)
   void updateProperty(PropertyUpdateRequest request, @MappingTarget Property property);
 
+  @Mapping(
+      target = "imageUrls",
+      expression =
+          "java(property.getImages() != null ? property.getImages().stream().map(com.project.estate.entity.PropertyImage::getUrl).toList() : java.util.List.of())")
   PropertyResponse toPropertyResponse(Property property);
 }
