@@ -21,9 +21,12 @@ public class CacheConfig {
 
     PolymorphicTypeValidator typeValidator =
         BasicPolymorphicTypeValidator.builder()
-            .allowIfSubType(
-                "com.project.estate.") // chỉ cho phép class trong package của bạn, thay vì cho tất
-            // cả
+            .allowIfSubType("com.project.estate.")
+            .allowIfSubType("java.math.")
+            .allowIfSubType("java.util.")
+            .allowIfSubType("java.time.")
+            .allowIfSubType("java.lang.")
+            .allowIfBaseType(Object.class)
             .build();
 
     GenericJacksonJsonRedisSerializer serializer =
