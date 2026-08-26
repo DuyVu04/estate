@@ -7,9 +7,11 @@ import com.project.estate.dto.response.ReservationResponse;
 import com.project.estate.entity.Reservation;
 import com.project.estate.service.ReservationService;
 import com.turkraft.springfilter.boot.Filter;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -26,13 +28,37 @@ public class ReservationController {
         PageResponse.of(reservationService.getReservations(specification, pageable)));
   }
 
+  @GetMapping("/{id}")
+  public ApiResponse<ReservationResponse> getReservationById(@PathVariable String id) {
+    return ApiResponse.success(reservationService.getReservationById(id));
+  }
+
   @PostMapping
   public ApiResponse<ReservationResponse> createReservation(
-      @RequestBody ReservationRequest reservation) {
+      @Valid @RequestBody ReservationRequest reservation) {
     return ApiResponse.success(reservationService.reserve(reservation));
   }
 
-  @DeleteMapping("{id}")
+  @PostMapping("/{id}/pay")
+  public ApiResponse<ReservationResponse> payDeposit(@PathVariable String id) {
+    reservationService.payDeposit(id);
+    return ApiResponse.success(reservationService.getReservationById(id));
+  }
+
+  @PostMapping("/{id}/complete")
+  @PreAuthorize("hasRole('ROLE_ADMIN')")
+  public ApiResponse<ReservationResponse> completeReservation(@PathVariable String id) {
+    reservationService.completeReservation(id);
+    return ApiResponse.success(reservationService.getReservationById(id));
+  }
+
+  @PostMapping("/{id}/cancel")
+  public ApiResponse<ReservationResponse> cancelReservationPost(@PathVariable String id) {
+    reservationService.cancelReservation(id);
+    return ApiResponse.success(reservationService.getReservationById(id));
+  }
+
+  @DeleteMapping("/{id}")
   public ApiResponse<Void> cancelReservation(@PathVariable String id) {
     reservationService.cancelReservation(id);
     return ApiResponse.success(null);

@@ -2,16 +2,20 @@ package com.project.estate.service;
 
 import com.project.estate.dto.request.ReservationRequest;
 import com.project.estate.dto.response.ReservationResponse;
+import com.project.estate.dto.response.WorkflowHistoryResponse;
 import com.project.estate.entity.Reservation;
 import com.project.estate.enums.ErrorCode;
 import com.project.estate.exception.AppException;
 import com.project.estate.mapper.ReservationMapper;
 import com.project.estate.repository.ReservationRepository;
+import com.project.estate.repository.WorkflowHistoryRepository;
+import com.project.estate.repository.WorkflowInstanceRepository;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.data.domain.Page;
@@ -21,7 +25,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class ReservationService {
 
@@ -30,9 +33,45 @@ public class ReservationService {
   private final ReservationTransactionalHandler transactionalHandler;
   private final RedissonClient redissonClient;
   private final CacheManager cacheManager;
+  private final WorkflowInstanceRepository workflowInstanceRepository;
+  private final WorkflowHistoryRepository workflowHistoryRepository;
 
   @Value("${app.lock.reservation-wait-time-seconds:3}")
-  private long waitTimeSeconds;
+  private long waitTimeSeconds = 3;
+
+  public ReservationService(
+      ReservationRepository reservationRepository,
+      ReservationMapper reservationMapper,
+      ReservationTransactionalHandler transactionalHandler,
+      RedissonClient redissonClient,
+      CacheManager cacheManager) {
+    this(
+        reservationRepository,
+        reservationMapper,
+        transactionalHandler,
+        redissonClient,
+        cacheManager,
+        null,
+        null);
+  }
+
+  @Autowired
+  public ReservationService(
+      ReservationRepository reservationRepository,
+      ReservationMapper reservationMapper,
+      ReservationTransactionalHandler transactionalHandler,
+      RedissonClient redissonClient,
+      CacheManager cacheManager,
+      @Autowired(required = false) WorkflowInstanceRepository workflowInstanceRepository,
+      @Autowired(required = false) WorkflowHistoryRepository workflowHistoryRepository) {
+    this.reservationRepository = reservationRepository;
+    this.reservationMapper = reservationMapper;
+    this.transactionalHandler = transactionalHandler;
+    this.redissonClient = redissonClient;
+    this.cacheManager = cacheManager;
+    this.workflowInstanceRepository = workflowInstanceRepository;
+    this.workflowHistoryRepository = workflowHistoryRepository;
+  }
 
   public ReservationResponse reserve(ReservationRequest reservationRequest) {
     String lockKey = "lock:property:" + reservationRequest.propertyId();
@@ -64,6 +103,44 @@ public class ReservationService {
         lock.unlock();
       }
     }
+  }
+
+  public ReservationResponse getReservationById(String id) {
+    Reservation reservation =
+        reservationRepository
+            .findById(id)
+            .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
+
+    ReservationResponse baseResponse = reservationMapper.toResponse(reservation);
+
+    // Lấy lịch sử chuyển trạng thái từ Workflow Engine (Audit Trail)
+    List<WorkflowHistoryResponse> histories = List.of();
+    if (workflowInstanceRepository != null && workflowHistoryRepository != null) {
+      histories =
+          workflowInstanceRepository
+              .findByWorkflowNameAndTargetId("reservation-workflow", id)
+              .map(
+                  instance ->
+                      workflowHistoryRepository
+                          .findByWorkflowInstanceIdOrderByCreatedAtAsc(instance.getId())
+                          .stream()
+                          .map(
+                              h ->
+                                  new WorkflowHistoryResponse(
+                                      h.getId(),
+                                      h.getAction(),
+                                      h.getStep(),
+                                      h.getPreviousStatus(),
+                                      h.getNewStatus(),
+                                      h.getPerformedBy(),
+                                      h.getStatus(),
+                                      h.getErrorMessage(),
+                                      h.getCreatedAt()))
+                          .toList())
+              .orElse(List.of());
+    }
+
+    return baseResponse.toBuilder().histories(histories).build();
   }
 
   @PreAuthorize("hasRole('ROLE_ADMIN')")
