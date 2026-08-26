@@ -48,6 +48,11 @@ class PropertyCacheBenchmarkTest {
     public com.project.estate.messaging.producer.PropertyVectorProducer propertyVectorProducer() {
       return mock(com.project.estate.messaging.producer.PropertyVectorProducer.class);
     }
+
+    @Bean
+    public MinioService minioService() {
+      return mock(MinioService.class);
+    }
   }
 
   @Autowired private PropertyService propertyService;

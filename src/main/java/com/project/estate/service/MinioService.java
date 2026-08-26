@@ -78,9 +78,49 @@ public class MinioService {
     log.info("Removed object from MinIO bucket {}: {}", bucketName, objectName);
   }
 
+  public String getPublicUrlPrefix() {
+    String baseUrl = minioUrl.replaceAll("/+$", "");
+    return String.format("%s/%s/", baseUrl, bucketName);
+  }
+
   public String getPublicUrl(String objectName) {
+    if (objectName == null || objectName.isBlank()) {
+      return objectName;
+    }
     String baseUrl = minioUrl.replaceAll("/+$", "");
     return String.format("%s/%s/%s", baseUrl, bucketName, objectName);
+  }
+
+  /** Extracts raw object key/name if a full URL was provided. */
+  public String extractObjectName(String keyOrUrl) {
+    if (keyOrUrl == null || keyOrUrl.isBlank()) {
+      return keyOrUrl;
+    }
+    String prefix = getPublicUrlPrefix();
+    if (keyOrUrl.startsWith(prefix)) {
+      return keyOrUrl.substring(prefix.length());
+    }
+    int slashIdx = keyOrUrl.lastIndexOf('/');
+    if (keyOrUrl.startsWith("http://") || keyOrUrl.startsWith("https://")) {
+      // If it points to our bucket or generic s3
+      if (keyOrUrl.contains("/" + bucketName + "/")) {
+        return keyOrUrl.substring(
+            keyOrUrl.indexOf("/" + bucketName + "/") + bucketName.length() + 2);
+      }
+      return keyOrUrl;
+    }
+    return keyOrUrl;
+  }
+
+  /** Resolves raw object key to complete public URL for frontend consumption. */
+  public String buildFullUrl(String keyOrUrl) {
+    if (keyOrUrl == null || keyOrUrl.isBlank()) {
+      return keyOrUrl;
+    }
+    if (keyOrUrl.startsWith("http://") || keyOrUrl.startsWith("https://")) {
+      return keyOrUrl;
+    }
+    return getPublicUrl(keyOrUrl);
   }
 
   public String presignedUrl(String objectName) throws Exception {

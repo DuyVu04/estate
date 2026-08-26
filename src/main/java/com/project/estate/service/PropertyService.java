@@ -29,6 +29,7 @@ public class PropertyService {
   private final PropertyRepository propertyRepository;
   private final PropertyMapper propertyMapper;
   private final PropertyVectorProducer propertyVectorProducer;
+  private final MinioService minioService;
 
   /** Create a new property Sets default status to AVAILABLE and persists images */
   @Transactional
@@ -38,9 +39,10 @@ public class PropertyService {
 
     if (request.imageUrls() != null && !request.imageUrls().isEmpty()) {
       for (int i = 0; i < request.imageUrls().size(); i++) {
-        String url = request.imageUrls().get(i);
-        if (url != null && !url.isBlank()) {
-          property.addImage(PropertyImage.builder().url(url).sortOrder(i).build());
+        String rawUrl = request.imageUrls().get(i);
+        if (rawUrl != null && !rawUrl.isBlank()) {
+          String objectKey = minioService.extractObjectName(rawUrl);
+          property.addImage(PropertyImage.builder().url(objectKey).sortOrder(i).build());
         }
       }
     }
@@ -80,9 +82,10 @@ public class PropertyService {
     if (request.imageUrls() != null) {
       property.getImages().clear();
       for (int i = 0; i < request.imageUrls().size(); i++) {
-        String url = request.imageUrls().get(i);
-        if (url != null && !url.isBlank()) {
-          property.addImage(PropertyImage.builder().url(url).sortOrder(i).build());
+        String rawUrl = request.imageUrls().get(i);
+        if (rawUrl != null && !rawUrl.isBlank()) {
+          String objectKey = minioService.extractObjectName(rawUrl);
+          property.addImage(PropertyImage.builder().url(objectKey).sortOrder(i).build());
         }
       }
     }
