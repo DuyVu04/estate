@@ -151,8 +151,11 @@ class ReservationServiceWorkflowTest {
 
     when(reservationMapper.toResponse(any(Reservation.class)))
         .thenReturn(
-            new ReservationResponse(
-                "res-999", null, ReservationStatus.ACTIVE, LocalDateTime.now().plusMinutes(15)));
+            ReservationResponse.builder()
+                .id("res-999")
+                .status(ReservationStatus.ACTIVE)
+                .expiresAt(LocalDateTime.now().plusMinutes(15))
+                .build());
 
     when(instanceRepository.save(any(WorkflowInstance.class)))
         .thenAnswer(

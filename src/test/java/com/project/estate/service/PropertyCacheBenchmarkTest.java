@@ -69,18 +69,19 @@ class PropertyCacheBenchmarkTest {
             .build();
 
     PropertyResponse mockResponse =
-        new PropertyResponse(
-            propertyId,
-            "Villa Riviera",
-            "Luxury Villa with Pool",
-            PropertyType.VILLA,
-            "123 Nguyen Van Huong",
-            "Thao Dien",
-            "District 2",
-            "HCMC",
-            BigDecimal.valueOf(500),
-            BigDecimal.valueOf(15000000000L),
-            PropertyStatus.AVAILABLE);
+        PropertyResponse.builder()
+            .id(propertyId)
+            .title("Villa Riviera")
+            .description("Luxury Villa with Pool")
+            .propertyType(PropertyType.VILLA)
+            .address("123 Nguyen Van Huong")
+            .ward("Thao Dien")
+            .district("District 2")
+            .city("HCMC")
+            .area(BigDecimal.valueOf(500))
+            .price(BigDecimal.valueOf(15000000000L))
+            .status(PropertyStatus.AVAILABLE)
+            .build();
 
     when(propertyRepository.findById(propertyId))
         .thenAnswer(

@@ -22,34 +22,4 @@ public record PropertyResponse(
     PropertyStatus status,
     List<String> imageUrls,
     LocalDateTime createdAt,
-    LocalDateTime updatedAt) {
-
-  public PropertyResponse(
-      String id,
-      String title,
-      String description,
-      PropertyType propertyType,
-      String address,
-      String ward,
-      String district,
-      String city,
-      BigDecimal area,
-      BigDecimal price,
-      PropertyStatus status) {
-    this(
-        id,
-        title,
-        description,
-        propertyType,
-        address,
-        ward,
-        district,
-        city,
-        area,
-        price,
-        status,
-        List.of(),
-        null,
-        null);
-  }
-}
+    LocalDateTime updatedAt) {}

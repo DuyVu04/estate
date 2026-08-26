@@ -8,6 +8,7 @@ import com.project.estate.enums.ErrorCode;
 import com.project.estate.enums.PropertyStatus;
 import com.project.estate.exception.AppException;
 import com.project.estate.mapper.PropertyMapper;
+import com.project.estate.messaging.producer.PropertyVectorProducer;
 import com.project.estate.repository.PropertyRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +27,7 @@ public class PropertyService {
 
   private final PropertyRepository propertyRepository;
   private final PropertyMapper propertyMapper;
-  private final com.project.estate.messaging.producer.PropertyVectorProducer propertyVectorProducer;
+  private final PropertyVectorProducer propertyVectorProducer;
 
   /** Create a new property Sets default status to AVAILABLE */
   @Transactional

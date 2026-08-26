@@ -87,11 +87,11 @@ class ReservationDistributedLockConcurrencyTest {
 
     ReservationRequest request = new ReservationRequest("prop-luxury-001", "user-001");
     ReservationResponse mockResponse =
-        new ReservationResponse(
-            "res-success-01",
-            null,
-            com.project.estate.enums.ReservationStatus.ACTIVE,
-            java.time.LocalDateTime.now().plusMinutes(15));
+        ReservationResponse.builder()
+            .id("res-success-01")
+            .status(com.project.estate.enums.ReservationStatus.ACTIVE)
+            .expiresAt(java.time.LocalDateTime.now().plusMinutes(15))
+            .build();
 
     when(transactionalHandler.executeReserve(any(ReservationRequest.class)))
         .thenReturn(mockResponse);

@@ -159,11 +159,11 @@ class ReservationConcurrencyTest {
 
     when(reservationMapper.toResponse(any(Reservation.class)))
         .thenReturn(
-            new ReservationResponse(
-                "res-concurrent-1",
-                null,
-                ReservationStatus.ACTIVE,
-                LocalDateTime.now().plusMinutes(15)));
+            ReservationResponse.builder()
+                .id("res-concurrent-1")
+                .status(ReservationStatus.ACTIVE)
+                .expiresAt(LocalDateTime.now().plusMinutes(15))
+                .build());
 
     int numberOfThreads = 2;
     ExecutorService executor = Executors.newFixedThreadPool(numberOfThreads);

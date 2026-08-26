@@ -15,10 +15,4 @@ public record ReservationResponse(
     BigDecimal depositAmount,
     LocalDateTime expiresAt,
     LocalDateTime createdAt,
-    List<WorkflowHistoryResponse> histories) {
-
-  public ReservationResponse(
-      String id, PropertyResponse property, ReservationStatus status, LocalDateTime expiresAt) {
-    this(id, property, null, status, null, expiresAt, null, List.of());
-  }
-}
+    List<WorkflowHistoryResponse> histories) {}
