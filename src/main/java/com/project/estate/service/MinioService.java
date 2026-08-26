@@ -18,6 +18,9 @@ import org.springframework.web.multipart.MultipartFile;
 @Slf4j
 public class MinioService {
 
+  @Value("${minio.url:http://localhost:9000}")
+  private String minioUrl;
+
   @Value("${minio.bucket-name:my-estate-bucket}")
   private String bucketName;
 
@@ -48,12 +51,12 @@ public class MinioService {
             .stream(file.getInputStream(), file.getSize(), -1)
             .build());
 
-    String url = presignedUrl(objectName);
+    String publicUrl = getPublicUrl(objectName);
 
     return FileUploadResponse.builder()
         .originalFileName(originalFilename)
         .objectName(objectName)
-        .url(url)
+        .url(publicUrl)
         .contentType(file.getContentType())
         .size(file.getSize())
         .build();
@@ -75,6 +78,11 @@ public class MinioService {
     log.info("Removed object from MinIO bucket {}: {}", bucketName, objectName);
   }
 
+  public String getPublicUrl(String objectName) {
+    String baseUrl = minioUrl.replaceAll("/+$", "");
+    return String.format("%s/%s/%s", baseUrl, bucketName, objectName);
+  }
+
   public String presignedUrl(String objectName) throws Exception {
     return minioClient.getPresignedObjectUrl(
         GetPresignedObjectUrlArgs.builder()
@@ -90,6 +98,32 @@ public class MinioService {
     if (!found) {
       minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
       log.info("Created MinIO bucket: {}", bucketName);
+      setBucketPublicReadPolicy();
+    }
+  }
+
+  private void setBucketPublicReadPolicy() {
+    try {
+      String policy =
+          """
+          {
+              "Version": "2012-10-17",
+              "Statement": [
+                  {
+                      "Effect": "Allow",
+                      "Principal": {"AWS": ["*"]},
+                      "Action": ["s3:GetObject"],
+                      "Resource": ["arn:aws:s3:::%s/*"]
+                  }
+              ]
+          }
+          """
+              .formatted(bucketName);
+      minioClient.setBucketPolicy(
+          SetBucketPolicyArgs.builder().bucket(bucketName).config(policy).build());
+      log.info("Configured Public Read Policy for MinIO bucket: {}", bucketName);
+    } catch (Exception e) {
+      log.warn("Failed to set public policy on MinIO bucket {}: {}", bucketName, e.getMessage());
     }
   }
 }
