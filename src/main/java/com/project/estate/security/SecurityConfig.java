@@ -8,6 +8,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
@@ -88,6 +89,9 @@ public class SecurityConfig {
         .authorizeHttpRequests(
             auth ->
                 auth.requestMatchers("/v1/auth/**")
+                    .permitAll()
+                    // Public endpoints for browsing and searching properties without login
+                    .requestMatchers(HttpMethod.GET, "/v1/properties", "/v1/properties/**")
                     .permitAll()
                     .requestMatchers("/v1/payments/webhook/**")
                     .permitAll()
