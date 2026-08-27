@@ -1,6 +1,7 @@
 package com.project.estate.repository;
 
 import com.project.estate.entity.Property;
+import com.project.estate.enums.PropertyStatus;
 import com.project.estate.repository.projection.PropertySemanticProjection;
 import java.math.BigDecimal;
 import java.util.List;
@@ -15,6 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 public interface PropertyRepository
     extends JpaRepository<Property, String>, JpaSpecificationExecutor<Property> {
+
+  long countByStatus(PropertyStatus status);
 
   @Modifying
   @Transactional

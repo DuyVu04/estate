@@ -52,6 +52,39 @@ public class PropertyController {
     return ApiResponse.success();
   }
 
+  /** Admin endpoint - Update property status directly */
+  @PatchMapping("/{id}/status")
+  @PreAuthorize("hasRole('ADMIN')")
+  public ApiResponse<PropertyResponse> updatePropertyStatus(
+      @PathVariable String id,
+      @RequestBody @Valid com.project.estate.dto.request.PropertyStatusUpdateRequest request) {
+    return ApiResponse.success(propertyService.updateStatus(id, request.status()));
+  }
+
+  /** Admin endpoint - Approve property (change status to AVAILABLE) */
+  @PatchMapping("/{id}/approve")
+  @PreAuthorize("hasRole('ADMIN')")
+  public ApiResponse<PropertyResponse> approveProperty(@PathVariable String id) {
+    return ApiResponse.success(
+        propertyService.updateStatus(id, com.project.estate.enums.PropertyStatus.AVAILABLE));
+  }
+
+  /** Admin endpoint - Reject property (change status to REJECTED) */
+  @PatchMapping("/{id}/reject")
+  @PreAuthorize("hasRole('ADMIN')")
+  public ApiResponse<PropertyResponse> rejectProperty(@PathVariable String id) {
+    return ApiResponse.success(
+        propertyService.updateStatus(id, com.project.estate.enums.PropertyStatus.REJECTED));
+  }
+
+  /** Admin endpoint - Hide property (change status to HIDDEN) */
+  @PatchMapping("/{id}/hide")
+  @PreAuthorize("hasRole('ADMIN')")
+  public ApiResponse<PropertyResponse> hideProperty(@PathVariable String id) {
+    return ApiResponse.success(
+        propertyService.updateStatus(id, com.project.estate.enums.PropertyStatus.HIDDEN));
+  }
+
   @GetMapping()
   public ApiResponse<PageResponse<PropertyResponse>> getPropertiesByFilter(
       @Filter Specification<Property> specification, Pageable pageable) {

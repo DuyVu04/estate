@@ -129,7 +129,7 @@ public class ReservationService {
     return reservationRepository.findByUserId(userId, pageable).map(reservationMapper::toResponse);
   }
 
-  @PreAuthorize("hasRole('ROLE_ADMIN')")
+  @PreAuthorize("hasRole('ADMIN')")
   public Page<ReservationResponse> getReservations(
       Specification<Reservation> specification, Pageable pageable) {
     return reservationRepository

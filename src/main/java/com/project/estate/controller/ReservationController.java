@@ -76,7 +76,7 @@ public class ReservationController {
 
   /** Admin Endpoint - Mark reservation as completed. */
   @PostMapping("/{id}/complete")
-  @PreAuthorize("hasRole('ROLE_ADMIN')")
+  @PreAuthorize("hasRole('ADMIN')")
   public ApiResponse<ReservationResponse> completeReservation(@PathVariable String id) {
     reservationService.completeReservation(id);
     return ApiResponse.success(reservationService.getReservationById(id));

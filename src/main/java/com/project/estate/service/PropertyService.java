@@ -97,6 +97,21 @@ public class PropertyService {
     return propertyMapper.toPropertyResponse(updatedProperty);
   }
 
+  /** Update property status - Evict Redis Cache */
+  @CacheEvict(value = "property_detail", key = "#id")
+  @Transactional
+  public PropertyResponse updateStatus(String id, PropertyStatus newStatus) {
+    Property property =
+        propertyRepository
+            .findById(id)
+            .orElseThrow(() -> new AppException(ErrorCode.PROPERTY_NOT_FOUND));
+
+    property.setStatus(newStatus);
+    Property saved = propertyRepository.save(property);
+    log.info("Property status updated to {} for ID: {}", newStatus, id);
+    return propertyMapper.toPropertyResponse(saved);
+  }
+
   /** Delete property - Evict Redis Cache on deletion */
   @CacheEvict(value = "property_detail", key = "#id")
   @Transactional
@@ -107,6 +122,10 @@ public class PropertyService {
         propertyRepository
             .findById(id)
             .orElseThrow(() -> new AppException(ErrorCode.PROPERTY_NOT_FOUND));
+
+    if (PropertyStatus.RESERVED.equals(property.getStatus())) {
+      throw new AppException(ErrorCode.PROPERTY_ALREADY_RESERVED);
+    }
 
     propertyRepository.delete(property);
     log.info("Property deleted successfully with ID: {}", id);

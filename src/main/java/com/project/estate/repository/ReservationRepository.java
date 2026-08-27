@@ -20,4 +20,6 @@ public interface ReservationRepository
       ReservationStatus status, LocalDateTime dateTime);
 
   Page<Reservation> findByUserId(String userId, Pageable pageable);
+
+  long countByStatus(ReservationStatus status);
 }
