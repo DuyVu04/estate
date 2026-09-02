@@ -8,6 +8,8 @@ import com.project.estate.dto.response.PropertyResponse;
 import com.project.estate.entity.Property;
 import com.project.estate.service.PropertyService;
 import com.turkraft.springfilter.boot.Filter;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -18,74 +20,103 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/v1/properties")
 @RequiredArgsConstructor
+@Tag(
+    name = "Property Management",
+    description =
+        "Endpoints for listing, filtering, creating, updating, approving, and managing real estate properties")
 public class PropertyController {
 
   private final PropertyService propertyService;
 
-  /** Public endpoint - Get property by ID */
   @GetMapping("/{id}")
+  @Operation(
+      summary = "Get property by ID",
+      description =
+          "Retrieves complete property details including images, price, area, and location")
   public ApiResponse<PropertyResponse> getPropertyById(@PathVariable String id) {
     return ApiResponse.success(propertyService.getPropertyById(id));
   }
 
-  /** Admin endpoint - Create property */
   @PostMapping()
   @PreAuthorize("hasRole('ADMIN')")
+  @Operation(
+      summary = "Create property",
+      description =
+          "Admin endpoint to create a new property listing and trigger async AI vector embedding")
   public ApiResponse<PropertyResponse> createProperty(
       @RequestBody @Valid PropertyCreateRequest request) {
     return ApiResponse.success(propertyService.createProperty(request));
   }
 
-  /** Admin endpoint - Update property */
   @PutMapping("/{id}")
   @PreAuthorize("hasRole('ADMIN')")
+  @Operation(
+      summary = "Update property",
+      description =
+          "Admin endpoint to update property fields, sync image gallery, and refresh AI vector embedding")
   public ApiResponse<PropertyResponse> updateProperty(
       @PathVariable String id, @RequestBody @Valid PropertyUpdateRequest request) {
     return ApiResponse.success(propertyService.updateProperty(id, request));
   }
 
-  /** Admin endpoint - Delete property */
   @DeleteMapping("/{id}")
   @PreAuthorize("hasRole('ADMIN')")
+  @Operation(
+      summary = "Delete property",
+      description = "Admin endpoint to delete a property from the database")
   public ApiResponse<Void> deleteProperty(@PathVariable String id) {
     propertyService.deleteProperty(id);
     return ApiResponse.success();
   }
 
-  /** Admin endpoint - Update property status directly */
   @PatchMapping("/{id}/status")
   @PreAuthorize("hasRole('ADMIN')")
+  @Operation(
+      summary = "Update property status",
+      description =
+          "Admin endpoint to update the status of a property (AVAILABLE, RESERVED, SOLD, HIDDEN, etc.)")
   public ApiResponse<PropertyResponse> updatePropertyStatus(
       @PathVariable String id,
       @RequestBody @Valid com.project.estate.dto.request.PropertyStatusUpdateRequest request) {
     return ApiResponse.success(propertyService.updateStatus(id, request.status()));
   }
 
-  /** Admin endpoint - Approve property (change status to AVAILABLE) */
   @PatchMapping("/{id}/approve")
   @PreAuthorize("hasRole('ADMIN')")
+  @Operation(
+      summary = "Approve property listing",
+      description = "Admin endpoint to approve property listing (sets status to AVAILABLE)")
   public ApiResponse<PropertyResponse> approveProperty(@PathVariable String id) {
     return ApiResponse.success(
         propertyService.updateStatus(id, com.project.estate.enums.PropertyStatus.AVAILABLE));
   }
 
-  /** Admin endpoint - Reject property (change status to REJECTED) */
   @PatchMapping("/{id}/reject")
   @PreAuthorize("hasRole('ADMIN')")
+  @Operation(
+      summary = "Reject property listing",
+      description = "Admin endpoint to reject a property listing (sets status to REJECTED)")
   public ApiResponse<PropertyResponse> rejectProperty(@PathVariable String id) {
     return ApiResponse.success(
         propertyService.updateStatus(id, com.project.estate.enums.PropertyStatus.REJECTED));
   }
 
-  /** Admin endpoint - Hide property (change status to HIDDEN) */
   @PatchMapping("/{id}/hide")
   @PreAuthorize("hasRole('ADMIN')")
+  @Operation(
+      summary = "Hide property listing",
+      description =
+          "Admin endpoint to temporarily hide a property from public view (sets status to HIDDEN)")
   public ApiResponse<PropertyResponse> hideProperty(@PathVariable String id) {
     return ApiResponse.success(
         propertyService.updateStatus(id, com.project.estate.enums.PropertyStatus.HIDDEN));
   }
 
   @GetMapping()
+  @Operation(
+      summary = "Filter and list properties",
+      description =
+          "Public endpoint to search and filter properties dynamically using SpringFilter criteria and pagination")
   public ApiResponse<PageResponse<PropertyResponse>> getPropertiesByFilter(
       @Filter Specification<Property> specification, Pageable pageable) {
     return ApiResponse.success(PageResponse.of(propertyService.search(specification, pageable)));

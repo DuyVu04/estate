@@ -24,9 +24,10 @@ spring:
     api-key: ${SENDGRID_API_KEY:SG.placeholder}
     from-email: ${SENDGRID_FROM_EMAIL:test@example.com}
   flyway:
-    enabled: false
+    enabled: true
     locations: classpath:db/migration
     baseline-on-migrate: true
+
   mail:
     from: ${SPRING_MAIL_FROM:test@example.com}
     port: ${SPRING_MAIL_PORT:587}

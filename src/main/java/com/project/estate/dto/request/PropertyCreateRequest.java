@@ -21,4 +21,7 @@ public record PropertyCreateRequest(
         BigDecimal area,
     @NotNull(message = "Price is required") @Positive(message = "Price must be greater than 0")
         BigDecimal price,
+    Integer bedrooms,
+    Integer bathrooms,
+    String thumbnailUrl,
     List<String> imageUrls) {}

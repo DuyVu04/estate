@@ -19,6 +19,8 @@ public record PropertyResponse(
     String city,
     BigDecimal area,
     BigDecimal price,
+    Integer bedrooms,
+    Integer bathrooms,
     PropertyStatus status,
     String thumbnailUrl,
     List<String> imageUrls,

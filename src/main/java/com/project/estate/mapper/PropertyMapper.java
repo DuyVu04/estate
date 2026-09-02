@@ -6,9 +6,11 @@ import com.project.estate.dto.response.PropertyResponse;
 import com.project.estate.entity.Property;
 import com.project.estate.service.MinioService;
 import java.util.List;
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Mapper(componentModel = "spring")
@@ -24,6 +26,7 @@ public abstract class PropertyMapper {
   @Mapping(target = "images", ignore = true)
   public abstract Property toProperty(PropertyCreateRequest request);
 
+  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "status", ignore = true)
   @Mapping(target = "version", ignore = true)
@@ -38,11 +41,21 @@ public abstract class PropertyMapper {
   public abstract PropertyResponse toPropertyResponse(Property property);
 
   protected String mapThumbnailUrl(Property property) {
-    if (property == null || property.getImages() == null || property.getImages().isEmpty()) {
+    if (property == null) {
       return null;
     }
-    String firstUrl = property.getImages().get(0).getUrl();
-    return minioService != null ? minioService.buildFullUrl(firstUrl) : firstUrl;
+    // 1. Ưu tiên lấy thumbnailUrl độc lập được lưu trong Property
+    if (property.getThumbnailUrl() != null && !property.getThumbnailUrl().isBlank()) {
+      return minioService != null
+          ? minioService.buildFullUrl(property.getThumbnailUrl())
+          : property.getThumbnailUrl();
+    }
+    // 2. Fallback cho dữ liệu cũ nếu chưa có thumbnailUrl
+    if (property.getImages() != null && !property.getImages().isEmpty()) {
+      String firstUrl = property.getImages().get(0).getUrl();
+      return minioService != null ? minioService.buildFullUrl(firstUrl) : firstUrl;
+    }
+    return null;
   }
 
   protected List<String> mapImagesToUrls(Property property) {

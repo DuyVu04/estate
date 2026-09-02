@@ -37,6 +37,10 @@ public class PropertyService {
     Property property = propertyMapper.toProperty(request);
     property.setStatus(PropertyStatus.AVAILABLE);
 
+    if (request.thumbnailUrl() != null && !request.thumbnailUrl().isBlank()) {
+      property.setThumbnailUrl(minioService.extractObjectName(request.thumbnailUrl()));
+    }
+
     if (request.imageUrls() != null && !request.imageUrls().isEmpty()) {
       for (int i = 0; i < request.imageUrls().size(); i++) {
         String rawUrl = request.imageUrls().get(i);
@@ -78,6 +82,13 @@ public class PropertyService {
             .orElseThrow(() -> new AppException(ErrorCode.PROPERTY_NOT_FOUND));
 
     propertyMapper.updateProperty(request, property);
+
+    if (request.thumbnailUrl() != null) {
+      property.setThumbnailUrl(
+          request.thumbnailUrl().isBlank()
+              ? null
+              : minioService.extractObjectName(request.thumbnailUrl()));
+    }
 
     if (request.imageUrls() != null) {
       property.getImages().clear();

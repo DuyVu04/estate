@@ -48,6 +48,17 @@ public class Property extends AbstractAuditEntity {
   @Column(nullable = false, precision = 15, scale = 2)
   BigDecimal price;
 
+  @Column(nullable = false)
+  @Builder.Default
+  Integer bedrooms = 0;
+
+  @Column(nullable = false)
+  @Builder.Default
+  Integer bathrooms = 0;
+
+  @Column(name = "thumbnail_url", length = 500)
+  String thumbnailUrl;
+
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 20)
   PropertyStatus status;
