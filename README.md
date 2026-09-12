@@ -17,22 +17,31 @@ Hệ thống Backend Nền tảng Bất Động Sản Doanh Nghiệp (Enterprise
 
 ## 📸 Hình Ảnh Giao Diện & Minh Họa Hệ Thống (Screenshots & Showcase)
 
-### 1. 🖥️ Giao Diện Người Dùng & Trợ Lý Ảo AI (Client Web & AI Assistant)
+### 1. 🏠 Trang Chủ, Tìm Kiếm & Chi Tiết Bất Động Sản
 <p align="center">
-  <img src="assets/screenshots/client-homepage.png" alt="Client Homepage & Search" width="48%" onerror="this.src='https://placehold.co/800x450/1e293b/ffffff?text=Client+Web+Homepage+%26+Search'"/>
-  <img src="assets/screenshots/ai-rag-chat.png" alt="Spring AI RAG Chat" width="48%" onerror="this.src='https://placehold.co/800x450/1e293b/ffffff?text=AI+RAG+Real+Estate+Chatbot'"/>
+  <img src="assets/screenshots/1.png" alt="Trang chủ & Tìm kiếm BĐS" width="48%" onerror="this.src='https://placehold.co/800x450/1e293b/ffffff?text=1.png+-+Trang+Chu+%26+Tim+Kiem+BDS'"/>
+  <img src="assets/screenshots/2.png" alt="Chi tiết Bất động sản" width="48%" onerror="this.src='https://placehold.co/800x450/1e293b/ffffff?text=2.png+-+Chi+Tiet+Bat+Dong+San'"/>
 </p>
 <p align="center">
-  <em>(Trái) Tìm kiếm ngữ nghĩa BĐS đa điều kiện &bull; (Phải) Trợ lý ảo AI tư vấn dự án RAG chống ảo giác</em>
+  <em>(Trái: 1.png) Trang chủ & Bộ lọc tìm kiếm thông minh &bull; (Phải: 2.png) Chi tiết Bất động sản, hình ảnh & tiện ích</em>
 </p>
 
-### 2. ⚙️ Bảng Điều Khiển Quản Trị & Sức Khỏe Hệ Thống (Admin & System Diagnostics)
+### 2. 🤖 Trợ Lý Ảo AI RAG & Thanh Toán Giữ Chỗ (Stripe Gateway)
 <p align="center">
-  <img src="assets/screenshots/admin-dashboard.png" alt="Admin Dashboard" width="48%" onerror="this.src='https://placehold.co/800x450/1e293b/ffffff?text=Admin+Dashboard+%26+Stats'"/>
-  <img src="assets/screenshots/admin-system-health.png" alt="System Health Diagnostics" width="48%" onerror="this.src='https://placehold.co/800x450/1e293b/ffffff?text=Real-time+System+Health+%26+JVM+Diagnostics'"/>
+  <img src="assets/screenshots/3.png" alt="AI RAG Chatbot" width="48%" onerror="this.src='https://placehold.co/800x450/1e293b/ffffff?text=3.png+-+AI+RAG+Chatbot+Tu+Van'"/>
+  <img src="assets/screenshots/4.png" alt="Thanh toán đặt cọc Stripe" width="48%" onerror="this.src='https://placehold.co/800x450/1e293b/ffffff?text=4.png+-+Giu+Cho+%26+Thanh+Toan+Stripe'"/>
 </p>
 <p align="center">
-  <em>(Trái) Thống kê bất động sản & trạng thái phê duyệt &bull; (Phải) Bảng chẩn đoán JVM, HikariCP & HTTP Traffic thời gian thực</em>
+  <em>(Trái: 3.png) Trợ lý AI tư vấn bất động sản chống ảo giác &bull; (Phải: 4.png) Quy trình đặt cọc giữ chỗ & cổng thanh toán Stripe</em>
+</p>
+
+### 3. ⚙️ Bảng Quản Trị Viên & Giám Sát Sức Khỏe Hệ Thống
+<p align="center">
+  <img src="assets/screenshots/5.png" alt="Admin Dashboard" width="48%" onerror="this.src='https://placehold.co/800x450/1e293b/ffffff?text=5.png+-+Admin+Dashboard+%26+Stats'"/>
+  <img src="assets/screenshots/6.png" alt="Giám sát hệ thống & JVM" width="48%" onerror="this.src='https://placehold.co/800x450/1e293b/ffffff?text=6.png+-+Giam+Sat+He+Thong+%26+JVM'"/>
+</p>
+<p align="center">
+  <em>(Trái: 5.png) Dashboard quản trị doanh thu & duyệt tin &bull; (Phải: 6.png) Bảng chẩn đoán sức khỏe hệ thống & hiệu năng JVM</em>
 </p>
 
 ---
