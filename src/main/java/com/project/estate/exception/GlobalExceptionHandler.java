@@ -38,6 +38,12 @@ public class GlobalExceptionHandler {
     return ResponseEntity.badRequest().body(ApiResponse.error(ErrorCode.VALIDATION_ERROR, errors));
   }
 
+  @ExceptionHandler({IllegalArgumentException.class, IllegalStateException.class})
+  public ResponseEntity<ApiResponse<Void>> handleBadRequestException(RuntimeException ex) {
+    log.warn("[BAD_REQUEST] Client sent invalid syntax or arguments: {}", ex.getMessage());
+    return ResponseEntity.badRequest().body(ApiResponse.error(ErrorCode.INVALID_REQUEST));
+  }
+
   @ExceptionHandler(Exception.class)
   public ResponseEntity<ApiResponse<Void>> handleException(Exception ex) {
 
