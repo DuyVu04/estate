@@ -1,14 +1,11 @@
 # 📸 Thư viện Ảnh Giao Diện Trang Web (Screenshots)
 
-Bạn chỉ cần chụp màn hình giao diện web và lưu file ảnh vào thư mục này với tên đặt số từ **`1.png`** đến **`6.png`** theo quy ước dưới đây:
+Danh sách hình ảnh giao diện thực tế của hệ thống hiển thị trực tiếp trên [README.md](../../README.md):
 
-| Tên file | Giao diện tương ứng trong README |
-| :---: | :--- |
-| **`1.png`** | 🏠 **Trang chủ & Tìm kiếm Bất động sản** (Danh sách BĐS, bộ lọc giá, vị trí) |
-| **`2.png`** | 🔍 **Chi tiết Bất động sản** (Hình ảnh, phòng ngủ, phòng tắm, tiện ích) |
-| **`3.png`** | 🤖 **Trợ lý ảo AI RAG Chatbot** (Khung chat tư vấn dự án thông minh với Spring AI) |
-| **`4.png`** | 💳 **Giữ chỗ & Thanh toán Stripe** (Đặt cọc giữ chỗ, hóa đơn thanh toán trực tuyến) |
-| **`5.png`** | 📊 **Admin Dashboard** (Bảng quản trị BĐS, duyệt tin, thống kê doanh thu) |
-| **`6.png`** | 🩺 **Giám sát Sức khỏe & JVM** (System Health Diagnostics hoặc Grafana Dashboard) |
-
-> 💡 **Lưu ý:** Chỉ cần thả file `1.png`, `2.png`, ... vào đây rồi push lên Git, file `README.md` ở trang chủ GitHub sẽ tự động hiển thị đúng vị trí!
+| Tên file | Mô tả giao diện | Vai trò trong hệ thống |
+| :---: | :--- | :--- |
+| **`1.png`** | 🏠 **Trang Chủ Thương Hiệu** | Hero Banner kiến trúc, tầm nhìn thương hiệu ThompBui Estates, số liệu dự án |
+| **`2.png`** | 🔍 **Khám Phá Danh Mục & Bộ Lọc** | Danh mục BĐS cao cấp, bộ lọc đa chiều (Tỉnh/Thành, Loại hình, Khoảng giá, Diện tích) |
+| **`3.png`** | 🏡 **Chi Tiết Bất Động Sản** | Thư viện hình ảnh thực tế, cấu trúc phòng, giá niêm yết và mức tiền cọc 10% |
+| **`4.png`** | 💼 **Cổng Thông Tin Nhà Đầu Tư** | Dashboard cá nhân hóa (Investor Portal), ưu đãi độc quyền và gợi ý BĐS tuyển chọn |
+| **`5.png`** | ⚡ **Sơ Đồ Tiến Trình Workflow** | Trực quan hóa State Machine vòng đời giữ chỗ, khóa căn 15 phút và thanh toán |

@@ -15,33 +15,32 @@ Hệ thống Backend Nền tảng Bất Động Sản Doanh Nghiệp (Enterprise
 
 ---
 
-## 📸 Hình Ảnh Giao Diện & Minh Họa Hệ Thống (Screenshots & Showcase)
+## 📸 Hình Ảnh Giao Diện Thực Tế (Web Platform Showcase)
 
-### 1. 🏠 Trang Chủ, Tìm Kiếm & Chi Tiết Bất Động Sản
+### 1. 🏠 Trang Chủ Nền Tảng & Khám Phá Danh Mục Bất Động Sản
 <p align="center">
-  <img src="assets/screenshots/1.png" alt="Trang chủ & Tìm kiếm BĐS" width="48%" onerror="this.src='https://placehold.co/800x450/1e293b/ffffff?text=1.png+-+Trang+Chu+%26+Tim+Kiem+BDS'"/>
-  <img src="assets/screenshots/2.png" alt="Chi tiết Bất động sản" width="48%" onerror="this.src='https://placehold.co/800x450/1e293b/ffffff?text=2.png+-+Chi+Tiet+Bat+Dong+San'"/>
+  <img src="assets/screenshots/1.png" alt="Trang chủ ThompBui Estates" width="48%" />
+  <img src="assets/screenshots/2.png" alt="Khám phá danh mục BĐS & Bộ lọc nâng cao" width="48%" />
 </p>
 <p align="center">
-  <em>(Trái: 1.png) Trang chủ & Bộ lọc tìm kiếm thông minh &bull; (Phải: 2.png) Chi tiết Bất động sản, hình ảnh & tiện ích</em>
-</p>
-
-### 2. 🤖 Trợ Lý Ảo AI RAG & Thanh Toán Giữ Chỗ (Stripe Gateway)
-<p align="center">
-  <img src="assets/screenshots/3.png" alt="AI RAG Chatbot" width="48%" onerror="this.src='https://placehold.co/800x450/1e293b/ffffff?text=3.png+-+AI+RAG+Chatbot+Tu+Van'"/>
-  <img src="assets/screenshots/4.png" alt="Thanh toán đặt cọc Stripe" width="48%" onerror="this.src='https://placehold.co/800x450/1e293b/ffffff?text=4.png+-+Giu+Cho+%26+Thanh+Toan+Stripe'"/>
-</p>
-<p align="center">
-  <em>(Trái: 3.png) Trợ lý AI tư vấn bất động sản chống ảo giác &bull; (Phải: 4.png) Quy trình đặt cọc giữ chỗ & cổng thanh toán Stripe</em>
+  <em>(Trái: 1.png) Trang chủ & Nhận diện thương hiệu ThompBui Estates &bull; (Phải: 2.png) Khám phá danh mục BĐS & Bộ lọc đa chiều (Giá, Vị trí, Diện tích)</em>
 </p>
 
-### 3. ⚙️ Bảng Quản Trị Viên & Giám Sát Sức Khỏe Hệ Thống
+### 2. 🏡 Chi Tiết Bất Động Sản & Cổng Thông Tin Nhà Đầu Tư (Investor Portal)
 <p align="center">
-  <img src="assets/screenshots/5.png" alt="Admin Dashboard" width="48%" onerror="this.src='https://placehold.co/800x450/1e293b/ffffff?text=5.png+-+Admin+Dashboard+%26+Stats'"/>
-  <img src="assets/screenshots/6.png" alt="Giám sát hệ thống & JVM" width="48%" onerror="this.src='https://placehold.co/800x450/1e293b/ffffff?text=6.png+-+Giam+Sat+He+Thong+%26+JVM'"/>
+  <img src="assets/screenshots/3.png" alt="Chi tiết BĐS & Mức cọc" width="48%" />
+  <img src="assets/screenshots/4.png" alt="Cổng thông tin nhà đầu tư" width="48%" />
 </p>
 <p align="center">
-  <em>(Trái: 5.png) Dashboard quản trị doanh thu & duyệt tin &bull; (Phải: 6.png) Bảng chẩn đoán sức khỏe hệ thống & hiệu năng JVM</em>
+  <em>(Trái: 3.png) Chi tiết BĐS, thư viện hình ảnh, pháp lý & mức cọc 10% &bull; (Phải: 4.png) Cổng nhà đầu tư (Investor Portal) cá nhân hóa với BĐS tuyển chọn</em>
+</p>
+
+### 3. ⚡ Trực Quan Hóa Tiến Trình Workflow Đặt Cọc (State Machine & Concurrency)
+<p align="center">
+  <img src="assets/screenshots/5.png" alt="Sơ đồ tiến trình Workflow State Machine" width="96%" />
+</p>
+<p align="center">
+  <em>(5.png) Sơ đồ State Machine trực quan hóa vòng đời giữ chỗ: Khóa căn 15 phút (Redisson Distributed Lock) ➔ Thanh toán cọc qua Stripe ➔ Hoàn tất hợp đồng</em>
 </p>
 
 ---
