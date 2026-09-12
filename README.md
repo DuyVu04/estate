@@ -17,8 +17,6 @@ Hệ thống Backend Nền tảng Bất Động Sản Doanh Nghiệp (Enterprise
 
 ## 📸 Hình Ảnh Giao Diện & Minh Họa Hệ Thống (Screenshots & Showcase)
 
-> 💡 **Hướng dẫn thêm ảnh chụp website:** Bạn có thể lưu file ảnh chụp màn hình (PNG, JPG, WebP) trực tiếp vào thư mục [`assets/screenshots/`](assets/screenshots/) hoặc kéo thả ảnh vào phần bình luận/issue trên GitHub để lấy link CDN, sau đó chèn vào các mục bên dưới.
-
 ### 1. 🖥️ Giao Diện Người Dùng & Trợ Lý Ảo AI (Client Web & AI Assistant)
 <p align="center">
   <img src="assets/screenshots/client-homepage.png" alt="Client Homepage & Search" width="48%" onerror="this.src='https://placehold.co/800x450/1e293b/ffffff?text=Client+Web+Homepage+%26+Search'"/>
