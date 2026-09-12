@@ -8,9 +8,34 @@
 ![RabbitMQ 3](https://img.shields.io/badge/RabbitMQ-3.13-orange.svg?style=flat-square&logo=rabbitmq)
 ![Prometheus](https://img.shields.io/badge/Prometheus-v2.51.0-red.svg?style=flat-square&logo=prometheus)
 ![Grafana](https://img.shields.io/badge/Grafana-10.4.1-orange.svg?style=flat-square&logo=grafana)
+![Micrometer](https://img.shields.io/badge/Micrometer-Metrics%20%26%20Diagnostics-blueviolet.svg?style=flat-square)
 ![Docker](https://img.shields.io/badge/Docker-Containers-blue.svg?style=flat-square&logo=docker)
 
-Hệ thống Backend Nền tảng Bất Động Sản Doanh Nghiệp (Enterprise Real Estate Platform) được xây dựng trên nền tảng **Java 21**, **Spring Boot 4.1.0** và **Spring AI 2.0.1**. Hệ thống tích hợp **PostgreSQL pgvector (HNSW Index)**, trợ lý ảo tư vấn **RAG Chatbot chống ảo giác**, xử lý hàng đợi sự kiện bất đồng bộ **RabbitMQ**, khóa phân tán **Redisson Distributed Lock**, thanh toán **Stripe Gateway API**, và giám sát hiệu năng thời gian thực với **Prometheus & Grafana**.
+Hệ thống Backend Nền tảng Bất Động Sản Doanh Nghiệp (Enterprise Real Estate Platform) được xây dựng trên nền tảng **Java 21**, **Spring Boot 4.1.0** và **Spring AI 2.0.1**. Hệ thống tích hợp **PostgreSQL pgvector (HNSW Index)**, trợ lý ảo tư vấn **RAG Chatbot chống ảo giác**, xử lý hàng đợi sự kiện bất đồng bộ **RabbitMQ**, khóa phân tán **Redisson Distributed Lock**, thanh toán **Stripe Gateway API**, giám sát hiệu năng thời gian thực với **Prometheus & Grafana**, cùng công cụ chẩn đoán sức khỏe hệ thống thời gian thực **Real-time System Health & JVM Diagnostics**.
+
+---
+
+## 📸 Hình Ảnh Giao Diện & Minh Họa Hệ Thống (Screenshots & Showcase)
+
+> 💡 **Hướng dẫn thêm ảnh chụp website:** Bạn có thể lưu file ảnh chụp màn hình (PNG, JPG, WebP) trực tiếp vào thư mục [`assets/screenshots/`](assets/screenshots/) hoặc kéo thả ảnh vào phần bình luận/issue trên GitHub để lấy link CDN, sau đó chèn vào các mục bên dưới.
+
+### 1. 🖥️ Giao Diện Người Dùng & Trợ Lý Ảo AI (Client Web & AI Assistant)
+<p align="center">
+  <img src="assets/screenshots/client-homepage.png" alt="Client Homepage & Search" width="48%" onerror="this.src='https://placehold.co/800x450/1e293b/ffffff?text=Client+Web+Homepage+%26+Search'"/>
+  <img src="assets/screenshots/ai-rag-chat.png" alt="Spring AI RAG Chat" width="48%" onerror="this.src='https://placehold.co/800x450/1e293b/ffffff?text=AI+RAG+Real+Estate+Chatbot'"/>
+</p>
+<p align="center">
+  <em>(Trái) Tìm kiếm ngữ nghĩa BĐS đa điều kiện &bull; (Phải) Trợ lý ảo AI tư vấn dự án RAG chống ảo giác</em>
+</p>
+
+### 2. ⚙️ Bảng Điều Khiển Quản Trị & Sức Khỏe Hệ Thống (Admin & System Diagnostics)
+<p align="center">
+  <img src="assets/screenshots/admin-dashboard.png" alt="Admin Dashboard" width="48%" onerror="this.src='https://placehold.co/800x450/1e293b/ffffff?text=Admin+Dashboard+%26+Stats'"/>
+  <img src="assets/screenshots/admin-system-health.png" alt="System Health Diagnostics" width="48%" onerror="this.src='https://placehold.co/800x450/1e293b/ffffff?text=Real-time+System+Health+%26+JVM+Diagnostics'"/>
+</p>
+<p align="center">
+  <em>(Trái) Thống kê bất động sản & trạng thái phê duyệt &bull; (Phải) Bảng chẩn đoán JVM, HikariCP & HTTP Traffic thời gian thực</em>
+</p>
 
 ---
 
@@ -19,17 +44,19 @@ Hệ thống Backend Nền tảng Bất Động Sản Doanh Nghiệp (Enterprise
 ### 1. 🤖 Trí Tuệ Nhân Tạo & Vector Database (Spring AI & pgvector)
 - **HNSW Vector Search**: Tích hợp extension `pgvector` trên PostgreSQL với chỉ mục đồ thị phân tầng **HNSW (Hierarchical Navigable Small World)** và độ đo khoảng cách **Cosine Distance (`<=>`)**, hỗ trợ vector 768 chiều.
 - **RAG Architecture (Retrieval-Augmented Generation)**: Trợ lý AI tư vấn bất động sản thông minh sử dụng **Spring AI `ChatClient`** kết hợp **Anti-Hallucination Guardrails Prompting**, đảm bảo câu trả lời trung thực và dẫn chứng 100% từ dữ liệu thực tế.
-- **Hybrid Search**: Kết hợp đồng thời bộ lọc điều kiện SQL (Thành phố, Khoảng giá, Trạng thái) và tìm kiếm ngữ nghĩa tự nhiên trong một truy vấn duy nhất.
+- **Hybrid Search**: Kết hợp đồng thời bộ lọc điều kiện SQL (Thành phố, Khoảng giá, Số phòng ngủ, Số phòng tắm, Trạng thái) và tìm kiếm ngữ nghĩa tự nhiên trong một truy vấn duy nhất.
 - **Event-Driven Vector Ingestion**: Tự động sinh và cập nhật vector embedding ngầm qua RabbitMQ Consumer với cơ chế **`TransactionSynchronization afterCommit`**, loại bỏ hoàn toàn hiện tượng Race Condition giữa Database và Message Queue.
 
 ### 2. 🔐 Bảo mật & Phân quyền Hạt mịn (Security & RBAC)
 - **Stateless Authentication**: Sử dụng JWT (JSON Web Token) mở rộng nhúng trực tiếp **User Roles & Authorities** vào claims payload.
 - **Phân quyền Role-Based Access Control (RBAC)**: Kiểm soát truy cập API theo vai trò và danh sách quyền chi tiết (`ROLE_USER`, `ROLE_ADMIN`, `ROLE_REALTOR`) qua `@PreAuthorize`.
+- **Public Property Browsing**: Hỗ trợ khách vãng lai tự do duyệt danh sách bất động sản và tìm kiếm không bắt buộc đăng nhập, chỉ yêu cầu định danh khi thực hiện giữ chỗ hoặc quản trị.
 - **API Rate Limiting**: Tích hợp bộ giới hạn tần suất truy cập qua Redis & Bucket4j để phòng chống tấn công brute-force và lạm dụng tài nguyên API.
 
 ### 3. 🏠 Quản lý Đặt Cọc & Khóa Phân Tán (Concurrency & Redisson Lock)
 - **Distributed Lock với Redisson**: Ngăn chặn triệt để hiện tượng Overbooking / Race Condition khi nhiều người dùng cùng bấm đặt cọc một bất động sản tại cùng một thời điểm.
 - **State Machine Workflow**: Quản lý vòng đời giữ chỗ bất động sản (`PENDING` ➔ `CONFIRMED` / `CANCELLED` / `EXPIRED`) kết hợp Scheduler tự động giải phóng căn nhà về `AVAILABLE` khi quá hạn thanh toán cọc.
+- **User Reservation History**: Cho phép khách hàng tra cứu lịch sử đặt cọc của bản thân (`GET /v1/reservations/my-reservations`), hồ sơ cá nhân (`/v1/auth/me`), và phân quyền cho Realtor/Admin xem lịch sử người dùng.
 
 ### 4. 💳 Cổng Thanh Toán & Webhook Idempotency (Stripe Gateway)
 - **Stripe Checkout Session**: Tạo phiên thanh toán tiền cọc an toàn qua Stripe API.
@@ -42,6 +69,16 @@ Hệ thống Backend Nền tảng Bất Động Sản Doanh Nghiệp (Enterprise
 ### 6. 📊 Giám Sát Hệ Thống Toàn Diện (Prometheus & Grafana Observability)
 - **Metrics Scraping**: Tự động thu thập số liệu vận hành hệ thống qua Spring Boot Actuator (`/api/actuator/prometheus`).
 - **Real-time Monitoring**: Dashboard Grafana trực quan hóa thời gian thực về JVM Memory, Connection Pool (HikariCP), Throughput (RPS), Error Rate và API Latency (P95/P99).
+
+### 7. 🩺 Chẩn Đoán Sức Khỏe & Giám Sát Hiệu Năng Thời Gian Thực (System Health & Diagnostics)
+- **Chỉ số JVM & Bộ nhớ chuyên sâu**: Giám sát Heap, Non-Heap, các phân vùng nhớ cụ thể (G1 Eden Space, G1 Old Gen, G1 Survivor Space, Metaspace, CodeCache, Compressed Class Space) kèm ngưỡng cảnh báo tài nguyên thông minh.
+- **Giám sát Luồng & Garbage Collection**: Theo dõi số lượng Live Threads, Daemon Threads, Peak Threads, thời gian GC dừng ứng dụng (GC Pause latency) và thời gian tạm dừng lâu nhất.
+- **HikariCP Database Connection Pool Diagnostics**: Đo lường thời gian thực số lượng kết nối đang dùng (Active), rảnh rỗi (Idle), luồng chờ kết nối (Pending Threads), số lần Connection Timeout, thời gian tạo kết nối trung bình và thời gian mượn kết nối từ pool (Acquire Time).
+- **Phân tích Lưu lượng HTTP & Top Endpoints**: Thống kê số lượng Request thành công (2xx), lỗi Client (4xx), lỗi Server (5xx), thời gian phản hồi TB/Max và danh sách Top 10 API endpoints bận rộn nhất.
+- **Tự động Đánh giá Trạng thái & Dịch tiếng Việt (Automated Health Status)**: Tự động tổng hợp dữ liệu từ Micrometer & Spring Actuator, phân loại trạng thái toàn hệ thống theo 3 cấp độ huy hiệu trực quan (`HEALTHY`, `WARNING`, `CRITICAL`), cung cấp thông điệp chẩn đoán tiếng Việt giúp Admin phát hiện và khắc phục sự cố tức thì.
+- **Admin REST API Endpoints**:
+  - `GET /api/v1/admin/system-health`: Lấy toàn bộ chỉ số sức khỏe hệ thống chi tiết.
+  - `GET /api/v1/admin/dashboard/system-health`: Tích hợp nhanh vào trang quản trị Admin.
 
 ---
 
@@ -57,7 +94,7 @@ Hệ thống Backend Nền tảng Bất Động Sản Doanh Nghiệp (Enterprise
 | **Message Broker** | RabbitMQ 3.13 (Management Console, DLQ, Routing Keys) |
 | **Cổng thanh toán & Email** | Stripe Java SDK, SendGrid API |
 | **Bảo mật & Rate Limiting** | Spring Security 6, JJWT, Bucket4j |
-| **Giám sát (Monitoring)** | Prometheus v2.51.0, Grafana 10.4.1, Micrometer Actuator |
+| **Chẩn đoán & Giám sát** | Micrometer, Spring Boot Actuator, Prometheus v2.51.0, Grafana 10.4.1 |
 | **Đóng gói & Container** | Docker, Docker Compose, Multi-stage Dockerfile |
 | **Code Formatting & Test** | Spotless Plugin (`googleJavaFormat`), JUnit 5, Mockito |
 
@@ -70,21 +107,24 @@ backend/
 ├── src/main/java/com/project/estate/
 │   ├── common/               # ApiResponse<T>, GlobalExceptionHandler, ErrorCode
 │   ├── config/               # SecurityConfig, RedisConfig, RabbitMQConfig, RedissonConfig
-│   ├── controller/           # REST API Controllers (Auth, Property, PropertyAi, RealEstateChat, Payment)
-│   ├── dto/                  # Requests & Responses (Java records)
+│   ├── controller/           # REST API Controllers (Auth, Property, SystemHealth, AdminDashboard, RealEstateChat, Payment)
+│   ├── dto/                  # Requests & Responses (Java records, SystemHealthResponse)
 │   ├── entity/               # JPA Entities (User, Property, Reservation, Payment, Role, Permission)
-│   ├── enums/                # RoleType, PropertyType, PropertyStatus, PaymentStatus Enums
+│   ├── enums/                # RoleType, PropertyType, PropertyStatus, PaymentStatus, HealthStatus
 │   ├── exception/            # Custom AccessDeniedHandler & AuthenticationEntryPoint
 │   ├── mapper/               # MapStruct Mappers (PropertyMapper, UserMapper, PaymentMapper)
 │   ├── messaging/            # RabbitMQ Producers & Consumers (VectorConsumer, EmailConsumer)
 │   ├── repository/           # Spring Data JPA & pgvector Native Query Repositories
 │   ├── security/             # JwtTokenProvider, JwtAuthenticationFilter
-│   └── service/              # Core Business Logic (PropertyAiService, RealEstateRagAdvisorService, ReservationService)
+│   └── service/              # Core Business Logic (PropertyAiService, SystemHealthService, ReservationService, RealEstateRagAdvisorService)
 ├── src/main/resources/
 │   ├── db/migration/         # Flyway SQL Migration Scripts (V1__... ➔ V11__enable_pgvector.sql)
 │   ├── application.yml       # Base Configuration
 │   ├── application-dev.yml   # Development Profile Configuration
 │   └── application-test.yml  # Test Profile Configuration
+├── assets/
+│   └── screenshots/          # Thư viện ảnh chụp màn hình UI & sơ đồ kiến trúc
+├── docs/                     # Tài liệu thiết kế & API Contracts
 ├── docker-compose.yml        # Multi-container Setup (Postgres+pgvector, Redis, RabbitMQ, Prometheus, Grafana, Qdrant)
 ├── Dockerfile                # Multi-stage Maven Build Dockerfile
 ├── prometheus.yml            # Prometheus Scraping Configuration
@@ -146,10 +186,12 @@ backend/
 
 ## 📊 Hệ Thống Giám Sát & Quản Lý (Dashboard Links)
 
-| Dịch vụ | Đường dẫn (URL) | Thông tin đăng nhập |
+| Dịch vụ | Đường dẫn (URL) | Thông tin đăng nhập / Quyền |
 | :--- | :--- | :--- |
 | **Spring Boot API** | `http://localhost:8080/api` | - |
 | **Swagger UI (Docs)** | `http://localhost:8080/api/swagger-ui/index.html` | - |
+| **Admin System Health API** | `http://localhost:8080/api/v1/admin/system-health` | Yêu cầu quyền `ROLE_ADMIN` (JWT Bearer) |
+| **Admin Dashboard Stats** | `http://localhost:8080/api/v1/admin/dashboard/stats` | Yêu cầu quyền `ROLE_ADMIN` (JWT Bearer) |
 | **Prometheus Metrics** | `http://localhost:9090/targets` | Không yêu cầu |
 | **Grafana Dashboard** | `http://localhost:3000` | **User**: `grafana` \| **Pass**: `password` |
 | **RabbitMQ Console** | `http://localhost:15672` | **User**: `guest` \| **Pass**: `guest` |
