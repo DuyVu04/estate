@@ -1,0 +1,29 @@
+package com.project.estate.modules.reservation.workflow.definition;
+
+import com.project.estate.modules.reservation.enums.ReservationAction;
+import java.util.List;
+import java.util.Optional;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Singular;
+
+/**
+ * Represents the blueprint of a Workflow Process. Analogous to a Class definition vs Object
+ * instance.
+ */
+@Getter
+@Builder
+public class WorkflowDefinition {
+  private final String workflowName;
+  private final String description;
+
+  @Singular private final List<WorkflowStepDefinition> steps;
+
+  public Optional<WorkflowStepDefinition> findStepByName(String stepName) {
+    return steps.stream().filter(step -> step.getStepName().equalsIgnoreCase(stepName)).findFirst();
+  }
+
+  public Optional<WorkflowStepDefinition> findStepByAction(ReservationAction action) {
+    return steps.stream().filter(step -> step.getAction() == action).findFirst();
+  }
+}
