@@ -22,8 +22,8 @@ public record ApiResponse<T>(int code, String message, T result) {
         .build();
   }
 
-  public static ApiResponse<Void> error(ErrorCode errorCode) {
-    return ApiResponse.<Void>builder()
+  public static <T> ApiResponse<T> error(ErrorCode errorCode) {
+    return ApiResponse.<T>builder()
         .code(errorCode.getCode())
         .message(errorCode.getMessage())
         .build();

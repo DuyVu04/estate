@@ -8,16 +8,20 @@ import com.project.estate.modules.identity.dto.response.UserResponse;
 import com.project.estate.modules.identity.security.AuthCookieFactory;
 import com.project.estate.modules.identity.service.AuthService;
 import com.project.estate.modules.identity.service.UserService;
+import com.project.estate.shared.exception.AppException;
 import com.project.estate.shared.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/v1/auth")
 @RequiredArgsConstructor
@@ -76,10 +80,21 @@ public class AuthController {
             ? cookieRefreshToken
             : (requestBody != null ? requestBody.refreshToken() : null);
 
-    TokenResponse tokenResponse = authService.refreshToken(tokenToRefresh);
-    return withCookies(
-        cookieFactory.buildAuthCookies(tokenResponse.refreshToken()),
-        ApiResponse.success(accessTokenOnly(tokenResponse)));
+    try {
+      TokenResponse tokenResponse = authService.refreshToken(tokenToRefresh);
+      return withCookies(
+          cookieFactory.buildAuthCookies(tokenResponse.refreshToken()),
+          ApiResponse.success(accessTokenOnly(tokenResponse)));
+    } catch (AppException ex) {
+      log.warn(
+          "[AUTH_REFRESH_FAILED] Refresh token failed: code={}, message={}. Clearing auth cookies to prevent reload loop.",
+          ex.getErrorCode().getCode(),
+          ex.getErrorCode().getMessage());
+      return withCookies(
+          cookieFactory.buildClearCookies(),
+          ApiResponse.error(ex.getErrorCode()),
+          ex.getErrorCode().getStatus());
+    }
   }
 
   @PostMapping("/logout")
@@ -119,11 +134,22 @@ public class AuthController {
     return TokenResponse.builder().accessToken(tokenResponse.accessToken()).build();
   }
 
-  /** Gắn N dòng Set-Cookie (mỗi cookie 1 dòng riêng) vào response, kèm body bất kỳ. */
+  /**
+   * Gắn N dòng Set-Cookie (mỗi cookie 1 dòng riêng) vào response, kèm body bất kỳ (mặc định HTTP
+   * 200).
+   */
   private <T> ResponseEntity<ApiResponse<T>> withCookies(
       List<String> cookies, ApiResponse<T> body) {
+    return withCookies(cookies, body, HttpStatus.OK);
+  }
+
+  /**
+   * Gắn N dòng Set-Cookie vào response kèm custom HttpStatus (dùng khi refresh thất bại trả 401).
+   */
+  private <T> ResponseEntity<ApiResponse<T>> withCookies(
+      List<String> cookies, ApiResponse<T> body, HttpStatus status) {
     HttpHeaders headers = new HttpHeaders();
     cookies.forEach(cookie -> headers.add(HttpHeaders.SET_COOKIE, cookie));
-    return ResponseEntity.ok().headers(headers).body(body);
+    return ResponseEntity.status(status).headers(headers).body(body);
   }
 }
