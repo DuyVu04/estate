@@ -5,9 +5,8 @@ import com.project.estate.modules.identity.dto.response.TokenResponse;
 import com.project.estate.modules.identity.dto.response.UserResponse;
 import com.project.estate.modules.identity.entity.User;
 import com.project.estate.modules.identity.enums.UserStatus;
+import com.project.estate.modules.identity.event.EmailVerificationEvent;
 import com.project.estate.modules.identity.mapper.UserMapper;
-import com.project.estate.modules.identity.messaging.dto.EmailVerificationMessage;
-import com.project.estate.modules.identity.messaging.producer.EmailProducer;
 import com.project.estate.modules.identity.repository.UserRepository;
 import com.project.estate.modules.identity.security.UserPrincipal;
 import com.project.estate.modules.identity.security.jwt.JwtService;
@@ -46,7 +45,7 @@ public class AuthService {
 
   private final VerificationTokenService verificationTokenService;
 
-  private final EmailProducer emailProducer;
+  private final org.springframework.context.ApplicationEventPublisher eventPublisher;
 
   public UserResponse getMyInfo() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -153,6 +152,7 @@ public class AuthService {
     if (oldToken != null) {
       verificationTokenService.deleteByToken(oldToken);
     }
-    emailProducer.send(new EmailVerificationMessage(user.getId(), user.getEmail(), newToken));
+    eventPublisher.publishEvent(
+        new EmailVerificationEvent(user.getId(), user.getEmail(), newToken));
   }
 }

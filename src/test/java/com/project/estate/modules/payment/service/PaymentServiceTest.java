@@ -41,7 +41,6 @@ class PaymentServiceTest {
   @Mock private PaymentMapper paymentMapper;
   @Mock private ReservationService reservationService;
   @Mock private ApplicationEventPublisher eventPublisher;
-  @Mock private com.project.estate.modules.identity.messaging.producer.EmailProducer emailProducer;
 
   @InjectMocks private PaymentService paymentService;
 

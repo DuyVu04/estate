@@ -46,25 +46,6 @@ spring:
       port: ${SPRING_DATA_REDIS_PORT:6380}
       database: 0
       timeout: 5s
-  rabbitmq:
-    host: ${SPRING_RABBITMQ_HOST:localhost}
-    port: ${SPRING_RABBITMQ_PORT:5672}
-    username: ${SPRING_RABBITMQ_USERNAME:guest}
-    password: ${SPRING_RABBITMQ_PASSWORD:guest}
-    listener:
-      simple:
-        acknowledge-mode: manual
-  ai:
-    openai:
-      base-url: https://generativelanguage.googleapis.com/v1beta/openai
-      api-key: ${GEMINI_API_KEY:mock-api-key}
-      chat:
-        options:
-          model: gemini-3.6-flash
-      embedding:
-        options:
-          model: gemini-embedding-001
-          dimensions: 768
 
 jwt:
   secret: ${SECRET_KEY:f513f80749396f4fbad6e62e4a40cf013b3cd86e4ffc88b7c39a075ac656f235}
@@ -80,20 +61,6 @@ openapi:
     version: 1.0.0
     server: http://localhost:8080/api
     api-docs: estate-service
-
-rabbitmq:
-  exchange:
-    email: email.exchange
-    dlq: email.dead.exchange
-    retry: email.retry.exchange
-  queue:
-    email: email.queue
-    dlq: email.dead.queue
-    retry: email.retry.queue
-  routing-key:
-    email: email.verify
-    dlq: email.dead
-    retry: email.retry
 
 app:
   rate-limit:

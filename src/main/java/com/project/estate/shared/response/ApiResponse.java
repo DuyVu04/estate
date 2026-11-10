@@ -29,10 +29,25 @@ public record ApiResponse<T>(int code, String message, T result) {
         .build();
   }
 
+  public static <T> ApiResponse<T> error(ErrorCode errorCode, String message) {
+    return ApiResponse.<T>builder()
+        .code(errorCode.getCode())
+        .message(message != null ? message : errorCode.getMessage())
+        .build();
+  }
+
   public static <T> ApiResponse<T> error(ErrorCode errorCode, T result) {
     return ApiResponse.<T>builder()
         .code(errorCode.getCode())
         .message(errorCode.getMessage())
+        .result(result)
+        .build();
+  }
+
+  public static <T> ApiResponse<T> error(ErrorCode errorCode, String message, T result) {
+    return ApiResponse.<T>builder()
+        .code(errorCode.getCode())
+        .message(message != null ? message : errorCode.getMessage())
         .result(result)
         .build();
   }

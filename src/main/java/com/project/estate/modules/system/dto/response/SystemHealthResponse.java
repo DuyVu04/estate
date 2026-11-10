@@ -112,7 +112,7 @@ public record SystemHealthResponse(
   public record InfrastructureHealth(
       ComponentHealth database,
       ComponentHealth redis,
-      ComponentHealth rabbitmq,
+      ComponentHealth eventBus,
       ComponentHealth mail,
       ComponentHealth diskSpace) {}
 }

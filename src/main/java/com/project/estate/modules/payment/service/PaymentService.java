@@ -1,6 +1,5 @@
 package com.project.estate.modules.payment.service;
 
-import com.project.estate.modules.identity.messaging.producer.EmailProducer;
 import com.project.estate.modules.payment.dto.request.InitiatePaymentRequest;
 import com.project.estate.modules.payment.dto.request.PaymentWebhookRequest;
 import com.project.estate.modules.payment.dto.response.PaymentResponse;
@@ -8,7 +7,6 @@ import com.project.estate.modules.payment.entity.Payment;
 import com.project.estate.modules.payment.enums.PaymentStatus;
 import com.project.estate.modules.payment.event.DepositPaidEvent;
 import com.project.estate.modules.payment.mapper.PaymentMapper;
-import com.project.estate.modules.payment.messaging.dto.DepositPaidMessage;
 import com.project.estate.modules.payment.repository.PaymentRepository;
 import com.project.estate.modules.reservation.entity.Reservation;
 import com.project.estate.modules.reservation.enums.ReservationStatus;
@@ -36,7 +34,6 @@ public class PaymentService {
   private final PaymentMapper paymentMapper;
   private final ReservationService reservationService;
   private final ApplicationEventPublisher eventPublisher;
-  private final EmailProducer emailProducer;
 
   @Transactional
   public PaymentResponse initiatePayment(InitiatePaymentRequest request) {
@@ -116,15 +113,6 @@ public class PaymentService {
       eventPublisher.publishEvent(
           new DepositPaidEvent(
               this,
-              reservation.getId(),
-              reservation.getUser().getEmail(),
-              propertyTitle,
-              request.amount(),
-              request.transactionRef()));
-
-      // Distributed RabbitMQ Message
-      emailProducer.sendDepositPaid(
-          new DepositPaidMessage(
               reservation.getId(),
               reservation.getUser().getEmail(),
               propertyTitle,

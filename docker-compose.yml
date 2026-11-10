@@ -33,25 +33,6 @@ services:
     networks:
       - backend-network
 
-  rabbitmq:
-    image: rabbitmq:3-management-alpine
-    container_name: estate-rabbitmq
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    volumes:
-      - rabbitdata:/var/lib/rabbitmq
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - backend-network
-
   estate-service:
     build:
       context: .
@@ -71,16 +52,10 @@ services:
       - DB_PASSWORD=${POSTGRES_PASSWORD}
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_DATA_REDIS_PORT=6379
-      - SPRING_RABBITMQ_HOST=rabbitmq
-      - SPRING_RABBITMQ_PORT=5672
-      - SPRING_RABBITMQ_USERNAME=${RABBITMQ_DEFAULT_USER}
-      - SPRING_RABBITMQ_PASSWORD=${RABBITMQ_DEFAULT_PASS}
     depends_on:
       db:
         condition: service_healthy
       redis:
-        condition: service_healthy
-      rabbitmq:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/api/actuator/health || exit 1"]
@@ -142,10 +117,8 @@ services:
 volumes:
   pgdata:
   redisdata:
-  rabbitdata:
   prometheusdata:
   grafanadata:
-  qdrantdata:
   miniodata:
 
 networks:

@@ -492,8 +492,13 @@ public class SystemHealthService {
           parseComponent(components.get("db"), "PostgreSQL", "Cơ sở dữ liệu chính");
       ComponentHealth redis =
           parseComponent(components.get("redis"), "Redis", "Bộ nhớ đệm & Rate limit");
-      ComponentHealth rabbit =
-          parseComponent(components.get("rabbit"), "RabbitMQ", "Hàng đợi tin nhắn");
+      ComponentHealth eventBus =
+          ComponentHealth.builder()
+              .name("Spring Event Bus")
+              .label("Xử lý sự kiện ngầm (@Async)")
+              .status(HealthStatus.HEALTHY)
+              .details("ThreadPoolTaskExecutor (Active)")
+              .build();
       ComponentHealth mail =
           parseComponent(components.get("mail"), "Mail Service", "Dịch vụ gửi email");
       ComponentHealth disk = parseDiskSpaceComponent(components.get("diskSpace"));
@@ -501,7 +506,7 @@ public class SystemHealthService {
       return InfrastructureHealth.builder()
           .database(db)
           .redis(redis)
-          .rabbitmq(rabbit)
+          .eventBus(eventBus)
           .mail(mail)
           .diskSpace(disk)
           .build();
@@ -603,12 +608,12 @@ public class SystemHealthService {
                 .status(HealthStatus.HEALTHY)
                 .details("Kết nối Lettuce")
                 .build())
-        .rabbitmq(
+        .eventBus(
             ComponentHealth.builder()
-                .name("RabbitMQ")
-                .label("Hàng đợi tin nhắn")
+                .name("Spring Event Bus")
+                .label("Xử lý sự kiện ngầm (@Async)")
                 .status(HealthStatus.HEALTHY)
-                .details("Spring AMQP listener")
+                .details("ThreadPoolTaskExecutor (Active)")
                 .build())
         .mail(
             ComponentHealth.builder()

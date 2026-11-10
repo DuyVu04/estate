@@ -1,17 +1,16 @@
-# 🏢 Real Estate Enterprise Platform & AI RAG System
+# 🏢 Real Estate Enterprise Platform — Backend Service
 
 ![Java 21](https://img.shields.io/badge/Java-21-orange.svg?style=flat-square&logo=openjdk)
 ![Spring Boot 4.1](https://img.shields.io/badge/Spring%20Boot-4.1.0-brightgreen.svg?style=flat-square&logo=springboot)
-![Spring AI 2.0](https://img.shields.io/badge/Spring%20AI-2.0.1-blue.svg?style=flat-square&logo=spring)
-![PostgreSQL 16](https://img.shields.io/badge/PostgreSQL-16%20%2B%20pgvector-blue.svg?style=flat-square&logo=postgresql)
+![PostgreSQL 16](https://img.shields.io/badge/PostgreSQL-16-blue.svg?style=flat-square&logo=postgresql)
 ![Redis 7](https://img.shields.io/badge/Redis-7%20%2B%20Redisson-red.svg?style=flat-square&logo=redis)
-![RabbitMQ 3](https://img.shields.io/badge/RabbitMQ-3.13-orange.svg?style=flat-square&logo=rabbitmq)
+![MinIO](https://img.shields.io/badge/MinIO-Object%20Storage-c72c48.svg?style=flat-square&logo=minio)
+![Spring Event Bus](https://img.shields.io/badge/Event%20Bus-Spring%20In--Memory-6db33f.svg?style=flat-square&logo=spring)
 ![Prometheus](https://img.shields.io/badge/Prometheus-v2.51.0-red.svg?style=flat-square&logo=prometheus)
 ![Grafana](https://img.shields.io/badge/Grafana-10.4.1-orange.svg?style=flat-square&logo=grafana)
-![Micrometer](https://img.shields.io/badge/Micrometer-Metrics%20%26%20Diagnostics-blueviolet.svg?style=flat-square)
 ![Docker](https://img.shields.io/badge/Docker-Containers-blue.svg?style=flat-square&logo=docker)
 
-Hệ thống Backend Nền tảng Bất Động Sản Doanh Nghiệp (Enterprise Real Estate Platform) được xây dựng trên nền tảng **Java 21**, **Spring Boot 4.1.0** và **Spring AI 2.0.1**. Hệ thống tích hợp **PostgreSQL pgvector (HNSW Index)**, trợ lý ảo tư vấn **RAG Chatbot chống ảo giác**, xử lý hàng đợi sự kiện bất đồng bộ **RabbitMQ**, khóa phân tán **Redisson Distributed Lock**, thanh toán **Stripe Gateway API**, giám sát hiệu năng thời gian thực với **Prometheus & Grafana**, cùng công cụ chẩn đoán sức khỏe hệ thống thời gian thực **Real-time System Health & JVM Diagnostics**.
+Hệ thống Backend Nền tảng Bất Động Sản Doanh Nghiệp (**ThompBui Estates Platform**) được kiến trúc theo mô hình **Modular Monolith** chuẩn mực trên nền tảng **Java 21** và **Spring Boot 4.1.0**. Hệ thống tích hợp cơ chế kiểm soát đồng thời 2 tầng (**Redisson Distributed Lock** + **JPA Optimistic Locking**), công cụ quy trình đặt cọc tùy biến (**Custom Workflow Engine**), thanh toán **Stripe Gateway** với kiểm soát tính lũy thừa (Idempotency), bus sự kiện bất đồng bộ trong bộ nhớ (**Spring In-Memory Event Bus**), lưu trữ tệp tin đám mây **MinIO**, cùng hệ thống giám sát và chẩn đoán sức khỏe hệ thống thời gian thực (**Real-time System Health & JVM Diagnostics**).
 
 ---
 
@@ -45,175 +44,233 @@ Hệ thống Backend Nền tảng Bất Động Sản Doanh Nghiệp (Enterprise
 
 ---
 
-## 🚀 Các Tính Năng Nổi Bật (Core Features)
+## 🚀 Các Tính Năng & Kiến Trúc Nổi Bật (Architectural Highlights)
 
-### 1. 🤖 Trí Tuệ Nhân Tạo & Vector Database (Spring AI & pgvector)
-- **HNSW Vector Search**: Tích hợp extension `pgvector` trên PostgreSQL với chỉ mục đồ thị phân tầng **HNSW (Hierarchical Navigable Small World)** và độ đo khoảng cách **Cosine Distance (`<=>`)**, hỗ trợ vector 768 chiều.
-- **RAG Architecture (Retrieval-Augmented Generation)**: Trợ lý AI tư vấn bất động sản thông minh sử dụng **Spring AI `ChatClient`** kết hợp **Anti-Hallucination Guardrails Prompting**, đảm bảo câu trả lời trung thực và dẫn chứng 100% từ dữ liệu thực tế.
-- **Hybrid Search**: Kết hợp đồng thời bộ lọc điều kiện SQL (Thành phố, Khoảng giá, Số phòng ngủ, Số phòng tắm, Trạng thái) và tìm kiếm ngữ nghĩa tự nhiên trong một truy vấn duy nhất.
-- **Event-Driven Vector Ingestion**: Tự động sinh và cập nhật vector embedding ngầm qua RabbitMQ Consumer với cơ chế **`TransactionSynchronization afterCommit`**, loại bỏ hoàn toàn hiện tượng Race Condition giữa Database và Message Queue.
+### 1. 🏛️ Kiến Trúc Modular Monolith (Modular Architecture)
+Mã nguồn được phân rã thành các module độc lập theo ngữ cảnh nghiệp vụ (Bounded Contexts), giảm thiểu phụ thuộc chéo và sẵn sàng mở rộng sang Microservices khi cần thiết:
+- **`modules/identity`**: Đăng ký, đăng nhập, phân quyền RBAC, JWT Token Lifecycle, sự kiện gửi email kích hoạt tài khoản.
+- **`modules/property`**: Quản lý hồ sơ bất động sản, cấu trúc phòng, lọc động đa tiêu chí (Spring Filter & JPA Specification), upload ảnh media lên MinIO.
+- **`modules/reservation`**: Quản lý vòng đời đặt cọc giữ chỗ, khóa phân tán, máy trạng thái State Machine, Scheduler tự động quét hết hạn.
+- **`modules/payment`**: Phiên thanh toán Stripe Checkout, xử lý Webhook lũy thừa, phát sinh sự kiện biên nhận cọc.
+- **`modules/system`**: Thu thập chỉ số hiệu năng chuyên sâu JVM, HikariCP pool, Event Bus và cung cấp API chẩn đoán sức khỏe hệ thống.
+- **`shared`**: Cấu hình Async ThreadPool, Redis, Redisson, đa ngôn ngữ i18n (`messages.properties`), xử lý lỗi toàn cục `GlobalExceptionHandler`.
 
-### 2. 🔐 Bảo mật & Phân quyền Hạt mịn (Security & RBAC)
-- **Stateless Authentication**: Sử dụng JWT (JSON Web Token) mở rộng nhúng trực tiếp **User Roles & Authorities** vào claims payload.
-- **Phân quyền Role-Based Access Control (RBAC)**: Kiểm soát truy cập API theo vai trò và danh sách quyền chi tiết (`ROLE_USER`, `ROLE_ADMIN`, `ROLE_REALTOR`) qua `@PreAuthorize`.
-- **Public Property Browsing**: Hỗ trợ khách vãng lai tự do duyệt danh sách bất động sản và tìm kiếm không bắt buộc đăng nhập, chỉ yêu cầu định danh khi thực hiện giữ chỗ hoặc quản trị.
-- **API Rate Limiting**: Tích hợp bộ giới hạn tần suất truy cập qua Redis & Bucket4j để phòng chống tấn công brute-force và lạm dụng tài nguyên API.
+### 2. 🔒 Kiểm Soát Đồng Thời 2 Tầng (Two-Tier Concurrency Control)
+Ngăn chặn triệt để hiện tượng **Double Booking** (bán trùng căn) và **Lost Update** khi nhiều khách hàng cùng bấm đặt cọc 1 bất động sản tại cùng một phần nghìn giây:
+- **Tầng 1 (Service Layer — Redisson Distributed Lock)**: Áp dụng khóa phân tán theo ID bất động sản với cơ chế thử lại có giới hạn thời gian (Fair Lock timeout). Đảm bảo chỉ 1 request duy nhất được phép khởi tạo đơn đặt cọc và chuyển trạng thái căn hộ sang giữ chỗ 15 phút.
+- **Tầng 2 (Database Layer — JPA Optimistic Locking `@Version`)**: Quản lý phiên bản dữ liệu tại PostgreSQL, tự động phát hiện xung đột và rollback giao dịch nếu có sự thay đổi trạng thái đồng thời ngoài dự tính.
 
-### 3. 🏠 Quản lý Đặt Cọc & Khóa Phân Tán (Concurrency & Redisson Lock)
-- **Distributed Lock với Redisson**: Ngăn chặn triệt để hiện tượng Overbooking / Race Condition khi nhiều người dùng cùng bấm đặt cọc một bất động sản tại cùng một thời điểm.
-- **State Machine Workflow**: Quản lý vòng đời giữ chỗ bất động sản (`PENDING` ➔ `CONFIRMED` / `CANCELLED` / `EXPIRED`) kết hợp Scheduler tự động giải phóng căn nhà về `AVAILABLE` khi quá hạn thanh toán cọc.
-- **User Reservation History**: Cho phép khách hàng tra cứu lịch sử đặt cọc của bản thân (`GET /v1/reservations/my-reservations`), hồ sơ cá nhân (`/v1/auth/me`), và phân quyền cho Realtor/Admin xem lịch sử người dùng.
+### 3. ⚙️ Động Cơ Quy Trình Đặt Cọc Tùy Biến (Custom Event-Driven Workflow Engine)
+- Xây dựng Workflow Engine chuyên biệt bằng **Spring AOP** và **Spring Expression Language (SpEL)** qua annotation `@WorkflowEngine`.
+- Kiểm soát chuyển dịch trạng thái nghiêm ngặt theo State Machine:
+  $$\text{PENDING} \longrightarrow \text{DEPOSIT\_PAID} \longrightarrow \text{COMPLETED} \quad \text{hoặc} \quad \{\text{CANCELLED}, \text{EXPIRED}\}$$
+- **Cô lập lịch sử kiểm toán (Audit Trail Isolation)**: Áp dụng `@Transactional(propagation = Propagation.REQUIRES_NEW)` khi ghi nhật ký lịch sử `workflow_histories`. Đảm bảo mọi bước chuyển trạng thái (kể cả thất bại do nghiệp vụ) đều được lưu vết vĩnh viễn mà không bị rollback theo giao dịch chính.
+- **Scheduler giải phóng căn tự động**: Định kỳ quét các đơn đặt cọc quá hạn 15 phút chưa thanh toán cọc để đưa trạng thái căn hộ về `AVAILABLE` và cập nhật đơn cọc sang `EXPIRED`.
 
-### 4. 💳 Cổng Thanh Toán & Webhook Idempotency (Stripe Gateway)
-- **Stripe Checkout Session**: Tạo phiên thanh toán tiền cọc an toàn qua Stripe API.
-- **Idempotent Webhook Processing**: Kiểm soát khóa Idempotency Key trong Redis & Database, đảm bảo chỉ xử lý cộng tiền/xác nhận cọc đúng 1 lần duy nhất dù Stripe gửi lặp Webhook.
+### 4. ⚡ Bus Sự Kiện Bất Đồng Bộ Trong Bộ Nhớ (Spring In-Memory Event Bus)
+- Thay thế hoàn toàn các broker cồng kềnh bằng kiến trúc sự kiện nội bộ Spring (`ApplicationEventPublisher`).
+- **Xử lý phi khóa (Non-blocking)**: Sử dụng `@Async` kết hợp custom thread pool `ThreadPoolTaskExecutor` (Core: 5, Max: 20, Queue: 500, Thread prefix: `app-event-`).
+- **Toàn vẹn dữ liệu giao dịch**: Áp dụng `@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)` cho cả:
+  - `EmailVerificationEvent`: Gửi email xác thực tài khoản sau khi user/token commit thành công vào DB.
+  - `DepositPaidEvent`: Gửi email xác nhận thanh toán cọc kèm mã giao dịch sau khi Stripe Webhook xác nhận hoàn tất.
+- Đạt hiệu năng cực cao (**latency < 5ms**), tiết kiệm tài nguyên máy chủ và loại bỏ rủi ro mất kết nối broker mạng bên ngoài.
 
-### 5. ✉️ Hàng Đợi Bất Đồng Bộ & Xử Lý Lỗi (RabbitMQ & DLQ)
-- **Asynchronous Messaging**: Gửi email xác nhận giao dịch, hóa đơn và tính toán vector embedding bất đồng bộ mà không block HTTP Request chính.
-- **Dead Letter Queue (DLQ)**: Thiết lập cơ chế tự động thử lại (Retry Exchange) và chuyển tiếp tin nhắn lỗi vào Dead Letter Queue để phục vụ giám sát và phục hồi lỗi.
+### 5. 💳 Cổng Thanh Toán Stripe & Xử Lý Webhook Lũy Thừa (Strict Idempotency)
+- **Stripe Checkout Session**: Tạo phiên thanh toán tiền cọc bảo mật thông qua Stripe Java SDK.
+- **Strict Idempotency**: Kết hợp kiểm tra trạng thái trong Redis cùng ràng buộc khóa duy nhất cơ sở dữ liệu (`payments.idempotency_key`), bảo đảm xử lý thanh toán đúng 1 lần duy nhất dù Stripe gửi lặp Webhook nhiều lần.
 
-### 6. 📊 Giám Sát Hệ Thống Toàn Diện (Prometheus & Grafana Observability)
-- **Metrics Scraping**: Tự động thu thập số liệu vận hành hệ thống qua Spring Boot Actuator (`/api/actuator/prometheus`).
-- **Real-time Monitoring**: Dashboard Grafana trực quan hóa thời gian thực về JVM Memory, Connection Pool (HikariCP), Throughput (RPS), Error Rate và API Latency (P95/P99).
+### 6. 🔐 Bảo Mật Đa Lớp & Kiểm Soát Tần Suất (Security & Rate Limiting)
+- **Stateless Authentication**: Sử dụng JWT với cặp Access Token (lưu trữ in-memory ở client) và Refresh Token tự động luân phiên (Rotation).
+- **Phân quyền Role-Based Access Control (RBAC)**: Phân định quyền hạn chi tiết (`ROLE_USER`, `ROLE_ADMIN`, `ROLE_REALTOR`) qua `@PreAuthorize`.
+- **Distributed Rate Limiting**: Tích hợp thuật toán Token Bucket với **Bucket4j** trên nền tảng **Redis**, bảo vệ các endpoint nhạy cảm (như Login, Reservation) chống tấn công brute-force.
 
-### 7. 🩺 Chẩn Đoán Sức Khỏe & Giám Sát Hiệu Năng Thời Gian Thực (System Health & Diagnostics)
-- **Chỉ số JVM & Bộ nhớ chuyên sâu**: Giám sát Heap, Non-Heap, các phân vùng nhớ cụ thể (G1 Eden Space, G1 Old Gen, G1 Survivor Space, Metaspace, CodeCache, Compressed Class Space) kèm ngưỡng cảnh báo tài nguyên thông minh.
-- **Giám sát Luồng & Garbage Collection**: Theo dõi số lượng Live Threads, Daemon Threads, Peak Threads, thời gian GC dừng ứng dụng (GC Pause latency) và thời gian tạm dừng lâu nhất.
-- **HikariCP Database Connection Pool Diagnostics**: Đo lường thời gian thực số lượng kết nối đang dùng (Active), rảnh rỗi (Idle), luồng chờ kết nối (Pending Threads), số lần Connection Timeout, thời gian tạo kết nối trung bình và thời gian mượn kết nối từ pool (Acquire Time).
-- **Phân tích Lưu lượng HTTP & Top Endpoints**: Thống kê số lượng Request thành công (2xx), lỗi Client (4xx), lỗi Server (5xx), thời gian phản hồi TB/Max và danh sách Top 10 API endpoints bận rộn nhất.
-- **Tự động Đánh giá Trạng thái & Dịch tiếng Việt (Automated Health Status)**: Tự động tổng hợp dữ liệu từ Micrometer & Spring Actuator, phân loại trạng thái toàn hệ thống theo 3 cấp độ huy hiệu trực quan (`HEALTHY`, `WARNING`, `CRITICAL`), cung cấp thông điệp chẩn đoán tiếng Việt giúp Admin phát hiện và khắc phục sự cố tức thì.
-- **Admin REST API Endpoints**:
-  - `GET /api/v1/admin/system-health`: Lấy toàn bộ chỉ số sức khỏe hệ thống chi tiết.
-  - `GET /api/v1/admin/dashboard/system-health`: Tích hợp nhanh vào trang quản trị Admin.
+### 7. 🩺 Chẩn Đoán Sức Khỏe & Giám Sát Hiệu Năng Thời Gian Thực (System Health Diagnostics)
+Cung cấp REST API toàn diện tại `/api/v1/admin/system-health` giúp quản trị viên theo dõi:
+- **Bộ nhớ JVM**: Heap Memory, Non-Heap, phân vùng chi tiết (G1 Eden, Old Gen, Survivor, Metaspace) kèm ngưỡng cảnh báo tài nguyên thông minh.
+- **Luồng & Garbage Collection**: Số lượng Live Threads, Daemon Threads, Peak Threads, thời gian GC dừng ứng dụng (GC Pause latency).
+- **HikariCP Connection Pool**: Số kết nối Active, Idle, Pending Threads, số lần Timeout, thời gian tạo kết nối TB và thời gian mượn kết nối (Acquire Time).
+- **Lưu lượng HTTP**: Tỷ lệ phản hồi 2xx, 4xx, 5xx, thời gian phản hồi P95/P99, danh sách Top 10 API endpoints bận rộn nhất.
+- **Trạng thái Event Bus**: Giám sát tình trạng hoạt động của Spring In-Memory Event Bus.
+- Tích hợp chuẩn **Prometheus** (`/api/actuator/prometheus`) và bảng điều khiển trực quan trên **Grafana**.
+
+### 8. 📦 Lưu Trữ Tệp Tin Đám Mây MinIO (Object Storage)
+- Tích hợp **MinIO Client SDK** tương thích chuẩn Amazon S3 để quản lý tải lên, lưu trữ và phát hành hình ảnh bất động sản chất lượng cao thông qua cơ chế Presigned URL an toàn.
 
 ---
 
 ## 🛠️ Công Nghệ Sử Dụng (Tech Stack)
 
-| Thành phần | Công nghệ |
-| :--- | :--- |
-| **Ngôn ngữ & Framework** | Java 21, Spring Boot 4.1.0, Spring Framework 7 |
-| **AI Framework & Vector Engine** | Spring AI 2.0.1 (`ChatClient`), PostgreSQL `pgvector` (HNSW Index, 768-dim) |
-| **Kiến trúc DTO & Mapping** | 100% Java `record`, Lombok `@Builder`, MapStruct 1.6.3 |
-| **Cơ sở dữ liệu & Migration** | PostgreSQL 16, Flyway Migration (V1 ➔ V11) |
-| **Bộ nhớ đệm & Khóa phân tán** | Redis 7, Redisson 3.51.0, Spring Cache (`@Cacheable`, `@CacheEvict`) |
-| **Message Broker** | RabbitMQ 3.13 (Management Console, DLQ, Routing Keys) |
-| **Cổng thanh toán & Email** | Stripe Java SDK, SendGrid API |
-| **Bảo mật & Rate Limiting** | Spring Security 6, JJWT, Bucket4j |
-| **Chẩn đoán & Giám sát** | Micrometer, Spring Boot Actuator, Prometheus v2.51.0, Grafana 10.4.1 |
-| **Đóng gói & Container** | Docker, Docker Compose, Multi-stage Dockerfile |
-| **Code Formatting & Test** | Spotless Plugin (`googleJavaFormat`), JUnit 5, Mockito |
+| Thành phần | Công nghệ / Thư viện | Vai trò |
+| :--- | :--- | :--- |
+| **Ngôn ngữ** | Java 21 LTS | Nền tảng thực thi với hiệu năng tối ưu, Record types, Virtual Threads |
+| **Framework lõi** | Spring Boot 4.1.0 (Spring Framework 7) | Khung ứng dụng chính, Dependency Injection, Autoconfiguration |
+| **Bảo mật & Token** | Spring Security 6, JJWT 0.12.6 | Xác thực Stateless JWT, RBAC, phân quyền phương thức |
+| **Cơ sở dữ liệu** | PostgreSQL 16 | Hệ quản trị cơ sở dữ liệu quan hệ chính |
+| **Migration** | Flyway 10.x | Quản lý phiên bản cấu trúc database tự động (V1 ➔ V14) |
+| **ORM & Persistence** | Spring Data JPA, Hibernate, HikariCP | Ánh xạ thực thể, quản lý kết nối và Optimistic Locking (`@Version`) |
+| **Bộ nhớ đệm & Khóa** | Redis 7, Redisson 3.51.0 | Phân tán Rate Limiting, Cache và Redisson Distributed Lock |
+| **Event Bus** | Spring Application Events (`@Async`) | Xử lý sự kiện bất đồng bộ nội bộ sau commit giao dịch |
+| **Thanh toán** | Stripe Java SDK 28.0.0 | Tích hợp Stripe Checkout Sessions & Webhook Idempotency |
+| **Lưu trữ Media** | MinIO Java SDK 8.6.0 | Hệ thống lưu trữ đối tượng tương thích S3 cho album ảnh BĐS |
+| **Bộ lọc động** | Turkraft Spring Filter 4.0.1 | Tạo JPA Specification truy vấn BĐS đa tiêu chí trực tiếp từ URL |
+| **Rate Limiting** | Bucket4j 8.10.1 (Redis backend) | Giới hạn tần suất request theo thuật toán Token Bucket |
+| **Tài liệu API** | Springdoc OpenAPI (Swagger UI) 2.8.9 | Sinh tài liệu REST API chuẩn OpenAPI 3 |
+| **Email Service** | Spring Mail (JavaMailSender) & SendGrid | Gửi email kích hoạt tài khoản và hóa đơn cọc |
+| **Giám sát & Số liệu** | Micrometer, Spring Boot Actuator, Prometheus, Grafana | Thu thập số liệu vận hành và trực quan hóa thời gian thực |
+| **Tiêu chuẩn Code** | Spotless (`googleJavaFormat`), Lombok, MapStruct | Định dạng code chuẩn Google, giảm thiểu boilerplate code |
+| **Container hóa** | Docker, Docker Compose | Đóng gói môi trường chạy chuẩn hóa nhiều container |
 
 ---
 
-## 📁 Cấu Trúc Dự Án (Project Structure)
+## 📁 Cấu Trúc Mã Nguồn (Modular Monolith Structure)
 
 ```text
 backend/
 ├── src/main/java/com/project/estate/
-│   ├── common/               # ApiResponse<T>, GlobalExceptionHandler, ErrorCode
-│   ├── config/               # SecurityConfig, RedisConfig, RabbitMQConfig, RedissonConfig
-│   ├── controller/           # REST API Controllers (Auth, Property, SystemHealth, AdminDashboard, RealEstateChat, Payment)
-│   ├── dto/                  # Requests & Responses (Java records, SystemHealthResponse)
-│   ├── entity/               # JPA Entities (User, Property, Reservation, Payment, Role, Permission)
-│   ├── enums/                # RoleType, PropertyType, PropertyStatus, PaymentStatus, HealthStatus
-│   ├── exception/            # Custom AccessDeniedHandler & AuthenticationEntryPoint
-│   ├── mapper/               # MapStruct Mappers (PropertyMapper, UserMapper, PaymentMapper)
-│   ├── messaging/            # RabbitMQ Producers & Consumers (VectorConsumer, EmailConsumer)
-│   ├── repository/           # Spring Data JPA & pgvector Native Query Repositories
-│   ├── security/             # JwtTokenProvider, JwtAuthenticationFilter
-│   └── service/              # Core Business Logic (PropertyAiService, SystemHealthService, ReservationService, RealEstateRagAdvisorService)
+│   ├── modules/
+│   │   ├── identity/                 # Bounded Context: Định danh & Phân quyền
+│   │   │   ├── controller/           # AuthController, UserController
+│   │   │   ├── dto/                  # Request / Response records (Login, Register, Token)
+│   │   │   ├── entity/               # User, Role, Permission entities
+│   │   │   ├── event/                # EmailVerificationEvent
+│   │   │   │   └── listener/         # EmailVerificationEventListener (@Async, @TransactionalEventListener)
+│   │   │   ├── repository/           # UserRepository, RoleRepository
+│   │   │   ├── security/             # CustomUserDetailsService, SecurityUtils
+│   │   │   └── service/              # AuthService, UserService, EmailTemplateService
+│   │   ├── payment/                  # Bounded Context: Thanh toán & Stripe
+│   │   │   ├── controller/           # PaymentController, StripeWebhookController
+│   │   │   ├── dto/                  # StripeCheckoutResponse, PaymentResponse
+│   │   │   ├── entity/               # Payment entity (idempotency_key)
+│   │   │   ├── event/                # DepositPaidEvent
+│   │   │   │   └── listener/         # DepositPaidEventListener
+│   │   │   ├── repository/           # PaymentRepository
+│   │   │   └── service/              # PaymentService, StripePaymentService
+│   │   ├── property/                 # Bounded Context: Danh mục Bất Động Sản
+│   │   │   ├── controller/           # PropertyController, PropertyMediaController
+│   │   │   ├── dto/                  # PropertyRequest, PropertyResponse, PropertyImageResponse
+│   │   │   ├── entity/               # Property, PropertyImage entities
+│   │   │   ├── repository/           # PropertyRepository (JPA Specification & Spring Filter)
+│   │   │   └── service/              # PropertyService, MinioMediaService
+│   │   ├── reservation/              # Bounded Context: Giữ chỗ & Workflow Engine
+│   │   │   ├── controller/           # ReservationController
+│   │   │   ├── dto/                  # ReservationRequest, ReservationResponse
+│   │   │   ├── entity/               # Reservation (@Version), WorkflowHistory
+│   │   │   ├── repository/           # ReservationRepository, WorkflowHistoryRepository
+│   │   │   ├── scheduler/            # ReservationExpirationScheduler (quét đơn hết hạn)
+│   │   │   ├── service/              # ReservationService (Redisson Lock)
+│   │   │   └── workflow/             # Custom Workflow Engine (@WorkflowEngine AOP, State Machine)
+│   │   └── system/                   # Bounded Context: Giám sát & Quản trị Hệ thống
+│   │       ├── controller/           # SystemHealthController, AdminDashboardController
+│   │       ├── dto/                  # SystemHealthResponse, DashboardStatsResponse
+│   │       └── service/              # SystemHealthService (JVM, Pool, Event Bus diagnostics)
+│   └── shared/                       # Cross-cutting Concerns (Dùng chung cho toàn hệ thống)
+│       ├── config/                   # AsyncConfig, RedisConfig, RedissonConfig, SecurityConfig, LocaleConfig
+│       ├── exception/                # AppException, GlobalExceptionHandler, ErrorCode
+│       ├── filter/                   # JwtAuthenticationFilter, RateLimitFilter
+│       ├── i18n/                     # Internationalization & ResourceBundle support
+│       └── response/                 # ApiResponse<T>, PageResponse<T>
 ├── src/main/resources/
-│   ├── db/migration/         # Flyway SQL Migration Scripts (V1__... ➔ V11__enable_pgvector.sql)
-│   ├── application.yml       # Base Configuration
-│   ├── application-dev.yml   # Development Profile Configuration
-│   └── application-test.yml  # Test Profile Configuration
-├── assets/
-│   └── screenshots/          # Thư viện ảnh chụp màn hình UI & sơ đồ kiến trúc
-├── docs/                     # Tài liệu thiết kế & API Contracts
-├── docker-compose.yml        # Multi-container Setup (Postgres+pgvector, Redis, RabbitMQ, Prometheus, Grafana, Qdrant)
-├── Dockerfile                # Multi-stage Maven Build Dockerfile
-├── prometheus.yml            # Prometheus Scraping Configuration
-└── pom.xml                   # Maven Dependencies (Spring Boot 4.1.0 & Spring AI 2.0.1 BOM)
+│   ├── db/migration/                 # Flyway SQL Scripts (V1__... ➔ V14__drop_property_embeddings.sql)
+│   ├── messages.properties           # Thông điệp i18n tiếng Anh
+│   ├── messages_vi.properties        # Thông điệp i18n tiếng Việt
+│   ├── templates/                    # Thymeleaf Email Templates (confirm-email, deposit-success)
+│   ├── application.yml               # Cấu hình gốc (Server, Context Path, Actuator)
+│   ├── application-dev.yml           # Môi trường Development
+│   └── application-test.yml          # Môi trường Test
+├── assets/screenshots/               # Thư viện ảnh chụp minh họa giao diện và sơ đồ
+├── docker-compose.yml                # Hạ tầng: PostgreSQL, Redis, MinIO, Prometheus, Grafana
+├── Dockerfile                        # Multi-stage Maven Build cho backend
+├── prometheus.yml                    # Cấu hình scraping số liệu Actuator
+└── pom.xml                           # Quản lý dependencies & Spotless plugin
 ```
 
 ---
 
-## ⚡ Hướng Dẫn Khởi Động Nhanh (Quick Start)
+## ⚡ Hướng Dẫn Cài Đặt & Khởi Chạy (Quick Start)
 
-### 📋 Yêu cầu hệ thống (Prerequisites)
-- **Java Development Kit (JDK)**: Version 21 trở lên.
-- **Maven**: Version 3.9+ (hoặc sử dụng wrapper `./mvnw` đi kèm).
-- **Docker & Docker Desktop**: Đã cài đặt và đang chạy.
+### 📋 Yêu Cầu Tiên Quyết (Prerequisites)
+- **Java Development Kit (JDK)**: Phiên bản 21 trở lên.
+- **Maven**: Phiên bản 3.9+ (hoặc dùng wrapper `./mvnw` đính kèm).
+- **Docker & Docker Compose**: Đã cài đặt và đang hoạt động.
 
 ---
 
-### Cách 1: Chạy toàn bộ hệ thống bằng Docker Compose (Khuyên dùng)
+### Cách 1: Khởi Chạy Hạ Tầng Docker + Chạy Spring Boot Local (Khuyên dùng khi Develop)
 
-1. **Clone repository về máy**:
+1. **Khởi động các dịch vụ hạ tầng nền tảng (Database, Redis, MinIO, Prometheus, Grafana)**:
    ```bash
-   git clone https://github.com/DuyVu04/estate.git
-   cd estate/backend
+   cd backend
+   docker-compose up -d db redis minio prometheus grafana
    ```
 
 2. **Cấu hình file môi trường**:
-   Tạo file `.env` từ file mẫu `.env.example`:
+   Sao chép `.env.example` thành `.env` và tùy chỉnh thông tin (nếu cần):
    ```bash
    cp .env.example .env
    ```
 
-3. **Khởi động tất cả dịch vụ trong 1 lệnh duy nhất**:
-   ```bash
-   docker-compose up --build -d
-   ```
-
-4. **Kiểm tra danh sách container đang chạy**:
-   ```bash
-   docker ps
-   ```
-
----
-
-### Cách 2: Chạy Spring Boot trên Máy Cục Bộ + Hạ Tầng bằng Docker
-
-1. **Khởi động các dịch vụ hạ tầng (Database, Redis, RabbitMQ, Prometheus, Grafana)**:
-   ```bash
-   docker-compose up -d db redis rabbitmq prometheus grafana
-   ```
-
-2. **Biên dịch và chạy ứng dụng Spring Boot**:
+3. **Biên dịch và chạy ứng dụng Spring Boot**:
    ```bash
    ./mvnw spring-boot:run
    ```
-
-Ứng dụng Backend sẽ chạy tại địa chỉ: `http://localhost:8080/api`
+   Ứng dụng sẽ tự động áp dụng các bản migration Flyway (V1 ➔ V14) và khởi chạy tại: `http://localhost:8080/api`
 
 ---
 
-## 📊 Hệ Thống Giám Sát & Quản Lý (Dashboard Links)
+### Cách 2: Khởi Chạy Toàn Bộ Hệ Thống Bằng Docker Compose (Production-like)
 
-| Dịch vụ | Đường dẫn (URL) | Thông tin đăng nhập / Quyền |
+```bash
+cd backend
+docker-compose up --build -d
+```
+Kiểm tra trạng thái các container:
+```bash
+docker ps
+```
+
+---
+
+## 📊 Bảng Điều Khiển & Cổng Kết Nối Dịch Vụ (Endpoints & Dashboards)
+
+| Dịch vụ / Công cụ | Đường dẫn truy cập (URL) | Thông tin đăng nhập / Phân quyền |
 | :--- | :--- | :--- |
-| **Spring Boot API** | `http://localhost:8080/api` | - |
-| **Swagger UI (Docs)** | `http://localhost:8080/api/swagger-ui/index.html` | - |
-| **Admin System Health API** | `http://localhost:8080/api/v1/admin/system-health` | Yêu cầu quyền `ROLE_ADMIN` (JWT Bearer) |
-| **Admin Dashboard Stats** | `http://localhost:8080/api/v1/admin/dashboard/stats` | Yêu cầu quyền `ROLE_ADMIN` (JWT Bearer) |
-| **Prometheus Metrics** | `http://localhost:9090/targets` | Không yêu cầu |
-| **Grafana Dashboard** | `http://localhost:3000` | **User**: `grafana` \| **Pass**: `password` |
-| **RabbitMQ Console** | `http://localhost:15672` | **User**: `guest` \| **Pass**: `guest` |
-| **PostgreSQL Database** | `localhost:5432` | **DB**: `my-estate` \| **User**: `duyvu` |
-| **Qdrant Dashboard** | `http://localhost:6333/dashboard` | Không yêu cầu |
+| **Backend REST API Root** | `http://localhost:8080/api` | Public |
+| **Swagger UI (OpenAPI Docs)** | `http://localhost:8080/api/swagger-ui/index.html` | Xem toàn bộ tài liệu API tương tác |
+| **System Health API** | `http://localhost:8080/api/v1/admin/system-health` | Yêu cầu `ROLE_ADMIN` (JWT Bearer) |
+| **Admin Dashboard Stats** | `http://localhost:8080/api/v1/admin/dashboard/stats` | Yêu cầu `ROLE_ADMIN` (JWT Bearer) |
+| **Prometheus Metrics Endpoint** | `http://localhost:8080/api/actuator/prometheus` | Dữ liệu thô thu thập số liệu vận hành |
+| **Prometheus Dashboard** | `http://localhost:9090/targets` | Giao diện kiểm tra targets của Prometheus |
+| **Grafana Observability** | `http://localhost:3100` | **User**: `grafana` \| **Pass**: `password` |
+| **MinIO Web Console** | `http://localhost:9001` | **User**: `minioadmin` \| **Pass**: `minioadmin` |
+| **PostgreSQL Database** | `localhost:5432` | **Database**: `my-estate` \| **User**: `duyvu` |
+| **Redis In-Memory Store** | `localhost:6380` | Quản lý khóa phân tán & Rate Limiting |
 
 ---
 
-## 🧪 Kiểm Thử & Định Dạng Code (Testing & Quality)
+## 🧪 Kiểm Thử & Tiêu Chuẩn Mã Nguồn (Testing & Quality)
 
-### 1. Chạy toàn bộ bộ kiểm thử tự động
+### 1. Chạy Bộ Kiểm Thử Tự Động (Unit & Integration Tests)
+Chạy toàn bộ các bộ kiểm thử cho Workflow, Concurrency, Bảo mật và Event Bus:
 ```bash
 ./mvnw test
 ```
+Chạy riêng các kiểm thử cho Event Bus nội bộ:
+```bash
+./mvnw test "-Dtest=EmailVerificationEventListenerTest,DepositPaidEventListenerTest"
+```
 
-### 2. Định dạng Code tự động chuẩn Google (Spotless Format)
+### 2. Định Dạng Mã Nguồn Tự Động (Google Java Style)
+Dự án áp dụng plugin **Spotless** để chuẩn hóa code theo định dạng **Google Java Format**:
 ```bash
 ./mvnw spotless:apply
 ```
+
+---
+
+## 🛡️ Vòng Đời Di Cư Cơ Sở Dữ Liệu (Flyway Migrations)
+Cơ sở dữ liệu được quản lý tự động theo lịch sử các script migration trong `src/main/resources/db/migration`:
+- **`V1` ➔ `V5`**: Khởi tạo cấu trúc các bảng người dùng, vai trò, quyền, bất động sản và đơn giữ chỗ.
+- **`V6`**: Khởi tạo bảng lưu vết quy trình `workflow_histories`.
+- **`V7`**: Khởi tạo bảng thanh toán `payments` kèm ràng buộc lũy thừa `payments.idempotency_key`.
+- **`V8` ➔ `V10`**: Bổ sung số tiền cọc, phân quyền mặc định và bổ sung index tối ưu truy vấn.
+- **`V11` ➔ `V14`**: Nâng cấp và dọn dẹp các tính năng embedding cũ, tinh gọn lược đồ dữ liệu thuần túy cho bài toán giao dịch bất động sản.

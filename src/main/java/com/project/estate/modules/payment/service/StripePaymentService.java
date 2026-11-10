@@ -50,7 +50,6 @@ public class StripePaymentService {
   private final ReservationService reservationService;
   private final PaymentMapper paymentMapper;
   private final ApplicationEventPublisher eventPublisher;
-  private final com.project.estate.modules.identity.messaging.producer.EmailProducer emailProducer;
 
   /**
    * Creates a Stripe Checkout Session for the given reservation. The reservation's depositAmount is
@@ -317,15 +316,6 @@ public class StripePaymentService {
     eventPublisher.publishEvent(
         new DepositPaidEvent(
             this,
-            reservationId,
-            reservation.getUser().getEmail(),
-            propertyTitle,
-            amount,
-            session.getId()));
-
-    // 2. Distributed RabbitMQ Message (Persistent + DLQ via messaging package)
-    emailProducer.sendDepositPaid(
-        new com.project.estate.modules.payment.messaging.dto.DepositPaidMessage(
             reservationId,
             reservation.getUser().getEmail(),
             propertyTitle,

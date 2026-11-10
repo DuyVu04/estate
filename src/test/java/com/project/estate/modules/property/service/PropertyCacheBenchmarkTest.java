@@ -45,13 +45,6 @@ class PropertyCacheBenchmarkTest {
     }
 
     @Bean
-    public com.project.estate.modules.property.messaging.producer.PropertyVectorProducer
-        propertyVectorProducer() {
-      return mock(
-          com.project.estate.modules.property.messaging.producer.PropertyVectorProducer.class);
-    }
-
-    @Bean
     public MinioService minioService() {
       return mock(MinioService.class);
     }

@@ -43,8 +43,6 @@ public class StartupLoggingListener implements ApplicationListener<ApplicationRe
     String dbUrl = environment.getProperty("spring.datasource.url", "N/A");
     String redisHost = environment.getProperty("spring.data.redis.host", "localhost");
     String redisPort = environment.getProperty("spring.data.redis.port", "6379");
-    String rabbitHost = environment.getProperty("spring.rabbitmq.host", "localhost");
-    String rabbitPort = environment.getProperty("spring.rabbitmq.port", "5672");
 
     log.info(
         """
@@ -58,7 +56,7 @@ public class StartupLoggingListener implements ApplicationListener<ApplicationRe
         \t📊 Prometheus Metrics  : {}://localhost:{}{}/actuator/prometheus
         \t🗄️ PostgreSQL Database : {}
         \t⚡ Redis In-Memory     : {}:{}
-        \t🐰 RabbitMQ Broker     : {}:{}
+        \t📬 Event Bus Engine   : Spring In-Memory (@Async + @TransactionalEventListener)
         -----------------------------------------------------------------------------------------
         """,
         activeProfiles,
@@ -77,8 +75,6 @@ public class StartupLoggingListener implements ApplicationListener<ApplicationRe
         contextPath,
         dbUrl,
         redisHost,
-        redisPort,
-        rabbitHost,
-        rabbitPort);
+        redisPort);
   }
 }
