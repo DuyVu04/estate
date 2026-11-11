@@ -10,7 +10,7 @@
 ![Grafana](https://img.shields.io/badge/Grafana-10.4.1-orange.svg?style=flat-square&logo=grafana)
 ![Docker](https://img.shields.io/badge/Docker-Containers-blue.svg?style=flat-square&logo=docker)
 
-Hệ thống Backend Nền tảng Bất Động Sản Doanh Nghiệp (**ThompBui Estates Platform**) được kiến trúc theo mô hình **Modular Monolith** chuẩn mực trên nền tảng **Java 21** và **Spring Boot 4.1.0**. Hệ thống tích hợp cơ chế kiểm soát đồng thời 2 tầng (**Redisson Distributed Lock** + **JPA Optimistic Locking**), công cụ quy trình đặt cọc tùy biến (**Custom Workflow Engine**), thanh toán **Stripe Gateway** với kiểm soát tính lũy thừa (Idempotency), bus sự kiện bất đồng bộ trong bộ nhớ (**Spring In-Memory Event Bus**), lưu trữ tệp tin đám mây **MinIO**, cùng hệ thống giám sát và chẩn đoán sức khỏe hệ thống thời gian thực (**Real-time System Health & JVM Diagnostics**).
+Hệ thống Backend Nền tảng Bất Động Sản Doanh Nghiệp (**ThompBui Estates Platform**) được kiến trúc theo mô hình **Phân tầng chuẩn mực (Layered Architecture / MVC - Package-by-Layer)** trên nền tảng **Java 21** và **Spring Boot 4.1.0**. Hệ thống tích hợp cơ chế kiểm soát đồng thời 2 tầng (**Redisson Distributed Lock** + **JPA Optimistic Locking**), công cụ quy trình đặt cọc tùy biến (**Custom Workflow Engine**), thanh toán **Stripe Gateway** với kiểm soát tính lũy thừa (Strict Idempotency), bus sự kiện bất đồng bộ trong bộ nhớ (**Spring In-Memory Event Bus**), lưu trữ tệp tin đám mây **MinIO**, cùng hệ thống giám sát và chẩn đoán sức khỏe hệ thống thời gian thực (**Real-time System Health & JVM Diagnostics**).
 
 ---
 
@@ -44,19 +44,24 @@ Hệ thống Backend Nền tảng Bất Động Sản Doanh Nghiệp (**ThompBui
 
 ---
 
-## 🚀 Các Tính Năng & Kiến Trúc Nổi Bật (Architectural Highlights)
+## 🚀 Các Tính Năng & Điểm Sáng Kỹ Thuật (Architectural Highlights)
 
-### 1. 🏛️ Kiến Trúc Modular Monolith (Modular Architecture)
-Mã nguồn được phân rã thành các module độc lập theo ngữ cảnh nghiệp vụ (Bounded Contexts), giảm thiểu phụ thuộc chéo và sẵn sàng mở rộng sang Microservices khi cần thiết:
-- **`modules/identity`**: Đăng ký, đăng nhập, phân quyền RBAC, JWT Token Lifecycle, sự kiện gửi email kích hoạt tài khoản.
-- **`modules/property`**: Quản lý hồ sơ bất động sản, cấu trúc phòng, lọc động đa tiêu chí (Spring Filter & JPA Specification), upload ảnh media lên MinIO.
-- **`modules/reservation`**: Quản lý vòng đời đặt cọc giữ chỗ, khóa phân tán, máy trạng thái State Machine, Scheduler tự động quét hết hạn.
-- **`modules/payment`**: Phiên thanh toán Stripe Checkout, xử lý Webhook lũy thừa, phát sinh sự kiện biên nhận cọc.
-- **`modules/system`**: Thu thập chỉ số hiệu năng chuyên sâu JVM, HikariCP pool, Event Bus và cung cấp API chẩn đoán sức khỏe hệ thống.
-- **`shared`**: Cấu hình Async ThreadPool, Redis, Redisson, đa ngôn ngữ i18n (`messages.properties`), xử lý lỗi toàn cục `GlobalExceptionHandler`.
+### 1. 🏛️ Kiến Trúc Phân Tầng Trực Quan (Layered Architecture / MVC)
+Toàn bộ mã nguồn được tổ chức theo từng tầng trách nhiệm rõ ràng (Package-by-Layer), giúp nhà phát triển dễ dàng định vị, kiểm soát và phát triển tính năng:
+- **`controller/`**: Điểm tiếp nhận request RESTful API (Auth, Property, Reservation, Payment, SystemHealth, Dashboard).
+- **`service/`**: Tầng nghiệp vụ xử lý logic cốt lõi (xử lý đặt cọc, thanh toán Stripe, email template, token cache).
+- **`repository/`**: Tầng giao tiếp cơ sở dữ liệu với Spring Data JPA & JPA Specification dynamic filtering.
+- **`entity/`**: Các thực thể ánh xạ CSDL PostgreSQL (User, Property, Reservation, Payment, WorkflowHistory, Role, Permission).
+- **`dto/`**: Các Java record bất biến (Immutable Records) phân định rõ `request/` và `response/`.
+- **`event/`**: Tầng sự kiện nội bộ Spring In-Memory Event Bus (`EmailVerificationEvent`, `DepositPaidEvent`) và các Listener `@Async`.
+- **`workflow/`**: Động cơ quy trình chuyển đổi trạng thái State Machine tùy biến bằng Spring AOP & SpEL (`@WorkflowEngine`).
+- **`security/`**: Cơ chế bảo mật Stateless JWT, CustomUserDetails, phân quyền phương thức RBAC.
+- **`config/`**: Toàn bộ cấu hình hệ thống (Async ThreadPool, Redis, Redisson, OpenAPI, MinIO, Security, Locale i18n).
+- **`scheduler/`**: Tác vụ nền định kỳ quét và giải phóng các đơn đặt cọc quá hạn 15 phút.
+- **`common/` & `exception/`**: Cấu trúc phản hồi API đồng nhất (`ApiResponse<T>`) và bắt lỗi toàn cục (`GlobalExceptionHandler`).
 
 ### 2. 🔒 Kiểm Soát Đồng Thời 2 Tầng (Two-Tier Concurrency Control)
-Ngăn chặn triệt để hiện tượng **Double Booking** (bán trùng căn) và **Lost Update** khi nhiều khách hàng cùng bấm đặt cọc 1 bất động sản tại cùng một phần nghìn giây:
+Ngăn chặn triệt để hiện tượng **Double Booking** (bán trùng căn) và **Lost Update** khi nhiều khách hàng cùng bấm đặt cọc 1 bất động sản tại cùng một thời điểm:
 - **Tầng 1 (Service Layer — Redisson Distributed Lock)**: Áp dụng khóa phân tán theo ID bất động sản với cơ chế thử lại có giới hạn thời gian (Fair Lock timeout). Đảm bảo chỉ 1 request duy nhất được phép khởi tạo đơn đặt cọc và chuyển trạng thái căn hộ sang giữ chỗ 15 phút.
 - **Tầng 2 (Database Layer — JPA Optimistic Locking `@Version`)**: Quản lý phiên bản dữ liệu tại PostgreSQL, tự động phát hiện xung đột và rollback giao dịch nếu có sự thay đổi trạng thái đồng thời ngoài dự tính.
 
@@ -122,53 +127,48 @@ Cung cấp REST API toàn diện tại `/api/v1/admin/system-health` giúp quả
 
 ---
 
-## 📁 Cấu Trúc Mã Nguồn (Modular Monolith Structure)
+## 📁 Cấu Trúc Mã Nguồn (Classic Layered MVC Structure)
 
 ```text
 backend/
 ├── src/main/java/com/project/estate/
-│   ├── modules/
-│   │   ├── identity/                 # Bounded Context: Định danh & Phân quyền
-│   │   │   ├── controller/           # AuthController, UserController
-│   │   │   ├── dto/                  # Request / Response records (Login, Register, Token)
-│   │   │   ├── entity/               # User, Role, Permission entities
-│   │   │   ├── event/                # EmailVerificationEvent
-│   │   │   │   └── listener/         # EmailVerificationEventListener (@Async, @TransactionalEventListener)
-│   │   │   ├── repository/           # UserRepository, RoleRepository
-│   │   │   ├── security/             # CustomUserDetailsService, SecurityUtils
-│   │   │   └── service/              # AuthService, UserService, EmailTemplateService
-│   │   ├── payment/                  # Bounded Context: Thanh toán & Stripe
-│   │   │   ├── controller/           # PaymentController, StripeWebhookController
-│   │   │   ├── dto/                  # StripeCheckoutResponse, PaymentResponse
-│   │   │   ├── entity/               # Payment entity (idempotency_key)
-│   │   │   ├── event/                # DepositPaidEvent
-│   │   │   │   └── listener/         # DepositPaidEventListener
-│   │   │   ├── repository/           # PaymentRepository
-│   │   │   └── service/              # PaymentService, StripePaymentService
-│   │   ├── property/                 # Bounded Context: Danh mục Bất Động Sản
-│   │   │   ├── controller/           # PropertyController, PropertyMediaController
-│   │   │   ├── dto/                  # PropertyRequest, PropertyResponse, PropertyImageResponse
-│   │   │   ├── entity/               # Property, PropertyImage entities
-│   │   │   ├── repository/           # PropertyRepository (JPA Specification & Spring Filter)
-│   │   │   └── service/              # PropertyService, MinioMediaService
-│   │   ├── reservation/              # Bounded Context: Giữ chỗ & Workflow Engine
-│   │   │   ├── controller/           # ReservationController
-│   │   │   ├── dto/                  # ReservationRequest, ReservationResponse
-│   │   │   ├── entity/               # Reservation (@Version), WorkflowHistory
-│   │   │   ├── repository/           # ReservationRepository, WorkflowHistoryRepository
-│   │   │   ├── scheduler/            # ReservationExpirationScheduler (quét đơn hết hạn)
-│   │   │   ├── service/              # ReservationService (Redisson Lock)
-│   │   │   └── workflow/             # Custom Workflow Engine (@WorkflowEngine AOP, State Machine)
-│   │   └── system/                   # Bounded Context: Giám sát & Quản trị Hệ thống
-│   │       ├── controller/           # SystemHealthController, AdminDashboardController
-│   │       ├── dto/                  # SystemHealthResponse, DashboardStatsResponse
-│   │       └── service/              # SystemHealthService (JVM, Pool, Event Bus diagnostics)
-│   └── shared/                       # Cross-cutting Concerns (Dùng chung cho toàn hệ thống)
-│       ├── config/                   # AsyncConfig, RedisConfig, RedissonConfig, SecurityConfig, LocaleConfig
-│       ├── exception/                # AppException, GlobalExceptionHandler, ErrorCode
-│       ├── filter/                   # JwtAuthenticationFilter, RateLimitFilter
-│       ├── i18n/                     # Internationalization & ResourceBundle support
-│       └── response/                 # ApiResponse<T>, PageResponse<T>
+│   ├── controller/                   # REST API Controllers (Auth, Property, Reservation, Payment, SystemHealth, Dashboard...)
+│   ├── service/                      # Core Business Logic Services
+│   │   ├── email/                    # EmailTemplateService, MailService (JavaMail / SendGrid)
+│   │   └── redis/                    # TokenBlacklistService, VerificationTokenService
+│   ├── repository/                   # Spring Data JPA Repositories (Specification & Custom Queries)
+│   ├── entity/                       # JPA Entities (User, Property, Reservation, Payment, WorkflowHistory, Role...)
+│   ├── dto/                          # Data Transfer Objects (Immutable Records)
+│   │   ├── request/                  # LoginRequest, ReservationRequest, PropertyCreateRequest...
+│   │   └── response/                 # UserResponse, ReservationResponse, SystemHealthResponse...
+│   ├── event/                        # Spring In-Memory Event Bus
+│   │   ├── EmailVerificationEvent.java
+│   │   ├── DepositPaidEvent.java
+│   │   └── listener/                 # EmailVerificationEventListener, DepositPaidEventListener (@Async)
+│   ├── workflow/                     # Custom Event-Driven Workflow Engine
+│   │   ├── annotation/               # @WorkflowEngine (AOP Trigger)
+│   │   ├── aspect/                   # WorkflowAspect (SpEL evaluation & execution interception)
+│   │   ├── context/                  # WorkflowContext
+│   │   ├── definition/               # WorkflowDefinition & Registry
+│   │   ├── factory/                  # WorkflowStrategyFactory
+│   │   ├── service/                  # WorkflowPersistenceService (@Transactional REQUIRES_NEW)
+│   │   ├── statemachine/             # ReservationStateMachine
+│   │   ├── strategy/                 # AbstractWorkflowStrategy & Concrete Strategies (PayDeposit, Cancel, Expire...)
+│   │   └── util/                     # SpelEvaluator
+│   ├── security/                     # Spring Security & JWT Implementation
+│   │   ├── custom/                   # CustomUserDetailsService
+│   │   ├── jwt/                      # JwtAuthenticationFilter, JwtService
+│   │   ├── service/                  # RefreshTokenService
+│   │   └── SecurityConfig.java       # SecurityFilterChain, PasswordEncoder, CORS config
+│   ├── scheduler/                    # Background Jobs (ReservationExpirationScheduler)
+│   ├── config/                       # Application Configuration Beans (AsyncConfig, RedisConfig, RedissonConfig, MinioConfig, StripeConfig...)
+│   ├── mapper/                       # MapStruct Mappers (UserMapper, PropertyMapper, ReservationMapper, PaymentMapper...)
+│   ├── enums/                        # System Enums (ReservationStatus, PaymentStatus, PropertyType, RoleType, ErrorCode...)
+│   ├── exception/                    # AppException, GlobalExceptionHandler
+│   ├── common/                       # Shared API Response structures
+│   │   └── response/                 # ApiResponse<T>, PageResponse<T>, Pagination
+│   ├── util/                         # Helper Utilities (SecurityUtils, GenderSubset, UniqueEmailValidator...)
+│   └── EstateApplication.java        # Spring Boot Main Entry Point
 ├── src/main/resources/
 │   ├── db/migration/                 # Flyway SQL Scripts (V1__... ➔ V14__drop_property_embeddings.sql)
 │   ├── messages.properties           # Thông điệp i18n tiếng Anh
