@@ -35,8 +35,7 @@ class EmailVerificationEventListenerTest {
   void handleEmailVerification_Success() {
     StubEmailTemplateService stubService = new StubEmailTemplateService();
     EmailVerificationEventListener listener = new EmailVerificationEventListener(stubService);
-    EmailVerificationEvent event =
-        new EmailVerificationEvent("user-123", "test@example.com", "token-abc");
+    EmailVerificationEvent event = new EmailVerificationEvent("user-123", "test@example.com", "token-abc");
 
     listener.handleEmailVerification(event);
 
@@ -51,8 +50,7 @@ class EmailVerificationEventListenerTest {
     StubEmailTemplateService stubService = new StubEmailTemplateService();
     stubService.shouldThrow = true;
     EmailVerificationEventListener listener = new EmailVerificationEventListener(stubService);
-    EmailVerificationEvent event =
-        new EmailVerificationEvent("user-123", "test@example.com", "token-abc");
+    EmailVerificationEvent event = new EmailVerificationEvent("user-123", "test@example.com", "token-abc");
 
     assertDoesNotThrow(() -> listener.handleEmailVerification(event));
     assertEquals(1, stubService.callCount);
