@@ -1,7 +1,5 @@
 package com.project.estate.security;
 
-import com.project.estate.exception.CustomAccessDeniedHandler;
-import com.project.estate.exception.CustomAuthenticationEntryPoint;
 import com.project.estate.security.custom.CustomUserDetailsService;
 import com.project.estate.security.jwt.JwtAuthenticationFilter;
 import java.util.List;

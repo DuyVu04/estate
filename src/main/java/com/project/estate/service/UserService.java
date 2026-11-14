@@ -6,10 +6,9 @@ import com.project.estate.entity.Role;
 import com.project.estate.entity.User;
 import com.project.estate.enums.ErrorCode;
 import com.project.estate.enums.UserStatus;
+import com.project.estate.event.EmailVerificationEvent;
 import com.project.estate.exception.AppException;
 import com.project.estate.mapper.UserMapper;
-import com.project.estate.messaging.dto.EmailVerificationMessage;
-import com.project.estate.messaging.producer.EmailProducer;
 import com.project.estate.repository.RoleRepository;
 import com.project.estate.repository.UserRepository;
 import com.project.estate.service.redis.VerificationTokenService;
@@ -38,7 +37,7 @@ public class UserService {
   private final UserMapper userMapper;
   private final PasswordEncoder passwordEncoder;
   private final VerificationTokenService verificationTokenService;
-  private final EmailProducer emailProducer;
+  private final org.springframework.context.ApplicationEventPublisher eventPublisher;
 
   public List<User> getUser() {
     return userRepository.findAll();
@@ -98,7 +97,8 @@ public class UserService {
 
     if (user.getId() != null) {
       try {
-        emailProducer.send(new EmailVerificationMessage(user.getId(), user.getEmail(), token));
+        eventPublisher.publishEvent(
+            new EmailVerificationEvent(user.getId(), user.getEmail(), token));
       } catch (Exception e) {
         log.error("Error sending confirmation email: {}", e.getMessage());
       }

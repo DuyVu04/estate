@@ -9,7 +9,6 @@ import com.project.estate.enums.ErrorCode;
 import com.project.estate.enums.PropertyStatus;
 import com.project.estate.exception.AppException;
 import com.project.estate.mapper.PropertyMapper;
-import com.project.estate.messaging.producer.PropertyVectorProducer;
 import com.project.estate.repository.PropertyRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +27,6 @@ public class PropertyService {
 
   private final PropertyRepository propertyRepository;
   private final PropertyMapper propertyMapper;
-  private final PropertyVectorProducer propertyVectorProducer;
   private final MinioService minioService;
 
   /** Create a new property Sets default status to AVAILABLE and persists images */
@@ -52,7 +50,6 @@ public class PropertyService {
     }
 
     propertyRepository.save(property);
-    propertyVectorProducer.publishPropertyEmbeddingTask(property.getId());
     return propertyMapper.toPropertyResponse(property);
   }
 
@@ -102,7 +99,6 @@ public class PropertyService {
     }
 
     Property updatedProperty = propertyRepository.save(property);
-    propertyVectorProducer.publishPropertyEmbeddingTask(updatedProperty.getId());
     log.info("Property updated successfully with ID: {}", updatedProperty.getId());
 
     return propertyMapper.toPropertyResponse(updatedProperty);

@@ -45,14 +45,6 @@ spring:
       port: 6380
       database: 0
       timeout: 5s
-  rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
-    listener:
-      simple:
-        acknowledge-mode: manual
 
 jwt:
   secret : ${SECRET_KEY}
@@ -65,20 +57,6 @@ openapi:
     version: 1.0.0
     server: http://localhost:8080/api
     api-docs: estate-service
-
-rabbitmq:
-  exchange:
-    email: email.exchange
-    dlq: email.dead.exchange
-    retry: email.retry.exchange
-  queue:
-    email: email.queue
-    dlq: email.dead.queue
-    retry: email.retry.queue
-  routing-key:
-    email: email.verify
-    dlq: email.dead
-    retry: email.retry
 
 app:
   rate-limit:

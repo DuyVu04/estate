@@ -48,10 +48,11 @@ public class AuthCookieFactory {
             Duration.ofMillis(refreshTokenExpirationMs)));
   }
 
-  /** Tạo cặp cookie rỗng (Max-Age=0) để xóa khi logout. */
+  /** Tạo cặp cookie rỗng (Max-Age=0) để xóa khi logout hoặc refresh token thất bại. */
   public List<String> buildClearCookies() {
     return List.of(
         buildCookie(refreshCookieName, "", REFRESH_COOKIE_PATH, true, Duration.ZERO),
+        buildCookie(refreshCookieName, "", "/", true, Duration.ZERO),
         buildCookie(SESSION_HINT_COOKIE_NAME, "", SESSION_HINT_PATH, false, Duration.ZERO));
   }
 

@@ -1,4 +1,4 @@
-package com.project.estate.exception;
+package com.project.estate.security;
 
 import com.project.estate.common.response.ApiResponse;
 import com.project.estate.enums.ErrorCode;
